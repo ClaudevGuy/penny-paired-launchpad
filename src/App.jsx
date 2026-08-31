@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 const STOCKS = [
   { symbol: 'PASW', name: 'Ping An Biomedical', price: 0.16, change: 19.26, volume: '336.5M', volRatio: 484.6, cap: '19.7M', spark: [10, 12, 11, 17, 16, 25, 23, 38, 35, 55, 48, 73] },
@@ -20,6 +20,54 @@ const MODES = [
   { id: 'shield', label: 'Shock absorber', sub: 'Counterweight volatility', icon: '◈' },
   { id: 'volume', label: 'Volume warp', sub: 'Favor signal density', icon: '≋' },
 ]
+
+const PENNIES = [
+  { layer: 'far', x: '5%', y: '17%', size: 34, drift: 24, duration: 13, delay: -4, tilt: -18, mark: '¢' },
+  { layer: 'far', x: '22%', y: '72%', size: 20, drift: -18, duration: 16, delay: -9, tilt: 22, mark: 'P' },
+  { layer: 'far', x: '44%', y: '8%', size: 26, drift: 14, duration: 15, delay: -2, tilt: 8, mark: '¢' },
+  { layer: 'far', x: '71%', y: '24%', size: 18, drift: -13, duration: 12, delay: -7, tilt: -24, mark: 'P' },
+  { layer: 'far', x: '91%', y: '63%', size: 30, drift: 21, duration: 17, delay: -11, tilt: 17, mark: '¢' },
+  { layer: 'far', x: '56%', y: '88%', size: 22, drift: -16, duration: 14, delay: -5, tilt: -6, mark: 'P' },
+  { layer: 'mid', x: '11%', y: '47%', size: 48, drift: -29, duration: 11, delay: -6, tilt: 15, mark: '¢' },
+  { layer: 'mid', x: '30%', y: '29%', size: 32, drift: 27, duration: 12, delay: -1, tilt: -21, mark: 'P' },
+  { layer: 'mid', x: '64%', y: '59%', size: 38, drift: -22, duration: 10, delay: -8, tilt: 26, mark: '¢' },
+  { layer: 'mid', x: '83%', y: '13%', size: 42, drift: 24, duration: 13, delay: -3, tilt: -11, mark: 'P' },
+  { layer: 'mid', x: '78%', y: '82%', size: 28, drift: -20, duration: 12, delay: -10, tilt: 18, mark: '¢' },
+  { layer: 'mid', x: '39%', y: '91%', size: 36, drift: 19, duration: 14, delay: -6, tilt: -16, mark: 'P' },
+  { layer: 'near', x: '-1%', y: '78%', size: 82, drift: 38, duration: 9, delay: -4, tilt: 24, mark: '¢' },
+  { layer: 'near', x: '18%', y: '5%', size: 62, drift: -34, duration: 10, delay: -7, tilt: -20, mark: 'P' },
+  { layer: 'near', x: '48%', y: '42%', size: 54, drift: 31, duration: 8, delay: -2, tilt: 13, mark: '¢' },
+  { layer: 'near', x: '96%', y: '32%', size: 76, drift: -37, duration: 11, delay: -8, tilt: -27, mark: 'P' },
+  { layer: 'near', x: '68%', y: '96%', size: 66, drift: 29, duration: 9, delay: -5, tilt: 19, mark: '¢' },
+]
+
+function PennyField() {
+  return (
+    <div className="coin-field" aria-hidden="true">
+      {['far', 'mid', 'near'].map((layer) => (
+        <div className={`coin-layer coin-layer--${layer}`} key={layer}>
+          {PENNIES.filter((coin) => coin.layer === layer).map((coin, index) => (
+            <span
+              className="floating-penny"
+              key={`${layer}-${index}`}
+              style={{
+                '--coin-x': coin.x,
+                '--coin-y': coin.y,
+                '--coin-size': `${coin.size}px`,
+                '--coin-drift': `${coin.drift}px`,
+                '--coin-duration': `${coin.duration}s`,
+                '--coin-delay': `${coin.delay}s`,
+                '--coin-tilt': `${coin.tilt}deg`,
+              }}
+            >
+              <i>{coin.mark}</i>
+            </span>
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
 
 const Icon = ({ name, size = 18 }) => {
   const paths = {
@@ -143,6 +191,7 @@ function ReviewDrawer({ open, onClose, pair, allocation, mode, budget, onLaunch,
 }
 
 export default function App() {
+  const shellRef = useRef(null)
   const [query, setQuery] = useState('')
   const [sort, setSort] = useState('volume')
   const [selected, setSelected] = useState('PASW')
@@ -194,11 +243,35 @@ export default function App() {
     if (!drawerOpen) setLaunchState('idle')
   }, [drawerOpen])
 
+  useEffect(() => {
+    let frame
+    const movePennies = (event) => {
+      if (!shellRef.current) return
+      window.cancelAnimationFrame(frame)
+      frame = window.requestAnimationFrame(() => {
+        const x = event.clientX / window.innerWidth - 0.5
+        const y = event.clientY / window.innerHeight - 0.5
+        shellRef.current.style.setProperty('--penny-far-x', `${x * -8}px`)
+        shellRef.current.style.setProperty('--penny-far-y', `${y * -6}px`)
+        shellRef.current.style.setProperty('--penny-mid-x', `${x * -18}px`)
+        shellRef.current.style.setProperty('--penny-mid-y', `${y * -13}px`)
+        shellRef.current.style.setProperty('--penny-near-x', `${x * -34}px`)
+        shellRef.current.style.setProperty('--penny-near-y', `${y * -24}px`)
+      })
+    }
+    window.addEventListener('pointermove', movePennies, { passive: true })
+    return () => {
+      window.cancelAnimationFrame(frame)
+      window.removeEventListener('pointermove', movePennies)
+    }
+  }, [])
+
   return (
-    <main className="app-shell">
+    <main className="app-shell" ref={shellRef}>
       <div className="noise" />
       <div className="ambient ambient--one" />
       <div className="ambient ambient--two" />
+      <PennyField />
 
       <header className="topbar">
         <a className="brand" href="#top" aria-label="Penny Paired home">
