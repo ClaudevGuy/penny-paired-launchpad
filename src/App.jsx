@@ -1,0 +1,347 @@
+import { useEffect, useMemo, useState } from 'react'
+
+const STOCKS = [
+  { symbol: 'PASW', name: 'Ping An Biomedical', price: 0.16, change: 19.26, volume: '336.5M', volRatio: 484.6, cap: '19.7M', spark: [10, 12, 11, 17, 16, 25, 23, 38, 35, 55, 48, 73] },
+  { symbol: 'CLGN', name: 'CollPlant Biotechnologies', price: 0.43, change: 19.41, volume: '172.0M', volRatio: 847.2, cap: '8.1M', spark: [12, 9, 14, 13, 22, 18, 26, 31, 28, 41, 40, 51] },
+  { symbol: 'FUNR', name: 'FUNR', price: 0.02, change: 102.0, volume: '117.8M', volRatio: 812372.4, cap: '$3', spark: [4, 5, 3, 5, 4, 6, 5, 9, 8, 17, 28, 68] },
+  { symbol: 'RDHL', name: 'RedHill Biopharma', price: 1.07, change: 61.12, volume: '95.8M', volRatio: 504.4, cap: '6.5M', spark: [8, 7, 11, 9, 14, 18, 16, 25, 22, 32, 46, 61] },
+  { symbol: 'BMXC', name: 'Bemax Inc.', price: 0.004, change: 33.33, volume: '91.7M', volRatio: 13.8, cap: '78.6K', spark: [9, 10, 8, 11, 10, 15, 13, 17, 16, 21, 25, 31] },
+  { symbol: 'COOT', name: 'Australian Oilseeds', price: 0.6, change: 31.4, volume: '68.1M', volRatio: 153.1, cap: '18.2M', spark: [14, 12, 10, 15, 13, 20, 18, 24, 22, 31, 29, 43] },
+  { symbol: 'SOAR', name: 'Volato Group', price: 0.24, change: 11.54, volume: '58.1M', volRatio: 1.4, cap: '13.0M', spark: [15, 17, 14, 16, 18, 17, 20, 19, 22, 24, 23, 26] },
+  { symbol: 'NCRA', name: 'Nocera Inc.', price: 2.89, change: 55.35, volume: '53.8M', volRatio: 17.9, cap: '4.5M', spark: [7, 8, 11, 10, 16, 14, 22, 20, 31, 28, 43, 57] },
+  { symbol: 'FLZH', name: 'Flash Sports & Media', price: 0.09, change: 8.28, volume: '41.7M', volRatio: 29.3, cap: '5.3M', spark: [13, 12, 14, 13, 15, 14, 16, 18, 17, 20, 19, 23] },
+  { symbol: 'GPRO', name: 'GoPro Inc.', price: 0.71, change: 18.39, volume: '41.0M', volRatio: 6.6, cap: '131M', spark: [11, 13, 12, 15, 14, 18, 17, 21, 20, 24, 27, 31] },
+  { symbol: 'WBUY', name: 'WEBUY GLOBAL', price: 0.93, change: 10.66, volume: '38.3M', volRatio: 12.3, cap: '5.1M', spark: [12, 14, 13, 15, 16, 15, 18, 17, 21, 20, 23, 25] },
+  { symbol: 'LGPS', name: 'LogProstyle Inc.', price: 1.23, change: 16.04, volume: '32.2M', volRatio: 9.3, cap: '29.0M', spark: [10, 9, 12, 11, 15, 14, 16, 19, 18, 22, 24, 29] },
+]
+
+const MODES = [
+  { id: 'momentum', label: 'Momentum split', sub: 'Ride twin velocity', icon: '↗' },
+  { id: 'shield', label: 'Shock absorber', sub: 'Counterweight volatility', icon: '◈' },
+  { id: 'volume', label: 'Volume warp', sub: 'Favor signal density', icon: '≋' },
+]
+
+const Icon = ({ name, size = 18 }) => {
+  const paths = {
+    search: <><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></>,
+    wallet: <><path d="M4 7.5h15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h12"/><path d="M16 12h5v4h-5a2 2 0 0 1 0-4Z"/></>,
+    tune: <><path d="M4 6h16M7 12h10M10 18h4"/><circle cx="8" cy="6" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="12" cy="18" r="1.5"/></>,
+    arrow: <><path d="M5 12h14M14 7l5 5-5 5"/></>,
+    close: <><path d="m6 6 12 12M18 6 6 18"/></>,
+    check: <path d="m5 12 4 4L19 6"/>,
+    bolt: <path d="m13 2-8 12h7l-1 8 8-12h-7l1-8Z"/>,
+    swap: <><path d="M4 8h13l-3-3M20 16H7l3 3"/></>,
+    info: <><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></>,
+  }
+  return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>
+}
+
+function Sparkline({ values, id, large = false }) {
+  const width = large ? 280 : 96
+  const height = large ? 88 : 32
+  const max = Math.max(...values)
+  const min = Math.min(...values)
+  const points = values.map((value, index) => {
+    const x = (index / (values.length - 1)) * width
+    const y = height - ((value - min) / Math.max(max - min, 1)) * (height - 6) - 3
+    return `${x},${y}`
+  }).join(' ')
+  const area = `0,${height} ${points} ${width},${height}`
+
+  return (
+    <svg className={`sparkline ${large ? 'sparkline--large' : ''}`} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" role="img" aria-label="Intraday price trend">
+      <defs>
+        <linearGradient id={`fill-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#c8ff35" stopOpacity=".35" />
+          <stop offset="1" stopColor="#c8ff35" stopOpacity="0" />
+        </linearGradient>
+        <filter id={`glow-${id}`}><feGaussianBlur stdDeviation="1.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <polygon points={area} fill={`url(#fill-${id})`} />
+      <polyline points={points} fill="none" stroke="#c8ff35" strokeWidth={large ? 2.3 : 1.6} vectorEffect="non-scaling-stroke" filter={`url(#glow-${id})`} />
+    </svg>
+  )
+}
+
+function StockRow({ stock, selected, paired, onSelect, onPair }) {
+  return (
+    <article className={`stock-row ${selected ? 'is-selected' : ''} ${paired ? 'is-paired' : ''}`} onClick={onSelect}>
+      <div className="stock-row__rank"><span>{stock.symbol.slice(0, 1)}</span></div>
+      <div className="stock-row__identity">
+        <div><strong>{stock.symbol}</strong><span>{stock.name}</span></div>
+        <Sparkline values={stock.spark} id={stock.symbol} />
+      </div>
+      <div className="stock-row__quote">
+        <strong>${stock.price < .01 ? stock.price.toFixed(3) : stock.price.toFixed(2)}</strong>
+        <span>+{stock.change.toFixed(2)}%</span>
+      </div>
+      <button className="mini-pair" onClick={(event) => { event.stopPropagation(); onPair() }} aria-label={`Add ${stock.symbol} to pair`}>
+        {paired ? <Icon name="check" size={15} /> : '+'}
+      </button>
+    </article>
+  )
+}
+
+function PairNode({ stock, leg, weight, active, onClick }) {
+  return (
+    <button className={`pair-node pair-node--${leg} ${active ? 'is-active' : ''}`} onClick={onClick}>
+      <span className="pair-node__leg">{leg === 'a' ? 'THRUST' : 'VECTOR'} / LEG {leg.toUpperCase()}</span>
+      <span className="pair-node__symbol">{stock.symbol}</span>
+      <span className="pair-node__price">${stock.price < .01 ? stock.price.toFixed(3) : stock.price.toFixed(2)}</span>
+      <span className="pair-node__change">+{stock.change.toFixed(2)}%</span>
+      <span className="pair-node__weight">{weight}%</span>
+    </button>
+  )
+}
+
+function ReviewDrawer({ open, onClose, pair, allocation, mode, budget, onLaunch, launchState }) {
+  const legAValue = budget * (allocation / 100)
+  const legBValue = budget - legAValue
+  return (
+    <>
+      <div className={`drawer-backdrop ${open ? 'is-open' : ''}`} onClick={onClose} />
+      <aside className={`review-drawer ${open ? 'is-open' : ''}`} aria-hidden={!open}>
+        <div className="drawer-handle" />
+        <div className="review-drawer__top">
+          <div><span className="eyebrow">PRE-FLIGHT SEQUENCE</span><h2>Stage the pair</h2></div>
+          <button className="icon-button" onClick={onClose} aria-label="Close review"><Icon name="close" /></button>
+        </div>
+
+        <div className="flight-code"><span>PAIR HASH</span><strong>{pair[0].symbol} // {pair[1].symbol}</strong><em>0x7F...29C</em></div>
+
+        <div className="review-legs">
+          {[pair[0], pair[1]].map((stock, index) => {
+            const dollars = index === 0 ? legAValue : legBValue
+            const shares = dollars / stock.price
+            return <div className="review-leg" key={stock.symbol}>
+              <div className="review-leg__mark">{String.fromCharCode(65 + index)}</div>
+              <div><strong>{stock.symbol}</strong><span>{shares > 10000 ? `${(shares / 1000).toFixed(1)}K` : shares.toFixed(1)} units</span></div>
+              <div><strong>${dollars.toFixed(2)}</strong><span>{index === 0 ? allocation : 100 - allocation}% weight</span></div>
+            </div>
+          })}
+        </div>
+
+        <dl className="review-specs">
+          <div><dt>Pair logic</dt><dd>{mode.label}</dd></div>
+          <div><dt>Est. chain fee</dt><dd>0.0008 ETH</dd></div>
+          <div><dt>Slippage guard</dt><dd>2.50%</dd></div>
+          <div><dt>Network</dt><dd><span className="status-dot" /> RH Chain / Preview</dd></div>
+        </dl>
+
+        <div className="risk-note"><Icon name="info" size={17} /><p><strong>High-volatility simulation.</strong> Penny stocks can move violently and may have limited liquidity. This interface does not execute a real trade.</p></div>
+
+        <button className={`launch-button ${launchState !== 'idle' ? 'is-launching' : ''}`} onClick={onLaunch} disabled={launchState !== 'idle'}>
+          <span className="launch-button__flare" />
+          {launchState === 'idle' && <><Icon name="bolt" /> Ignite pair</>}
+          {launchState === 'signing' && <>SIGNING PAIR...</>}
+          {launchState === 'launched' && <><Icon name="check" /> Pair launched</>}
+        </button>
+        <p className="launch-caption">By launching, both legs are atomically staged as one intent.</p>
+      </aside>
+    </>
+  )
+}
+
+export default function App() {
+  const [query, setQuery] = useState('')
+  const [sort, setSort] = useState('volume')
+  const [selected, setSelected] = useState('PASW')
+  const [pair, setPair] = useState([STOCKS[0], STOCKS[3]])
+  const [activeLeg, setActiveLeg] = useState(0)
+  const [allocation, setAllocation] = useState(58)
+  const [modeId, setModeId] = useState('momentum')
+  const [budget, setBudget] = useState(250)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [launchState, setLaunchState] = useState('idle')
+  const [mobileRail, setMobileRail] = useState(false)
+
+  const activeStock = STOCKS.find((stock) => stock.symbol === selected) || STOCKS[0]
+  const mode = MODES.find((item) => item.id === modeId)
+
+  const filteredStocks = useMemo(() => {
+    const normalized = query.trim().toLowerCase()
+    const items = STOCKS.filter((stock) => !normalized || stock.symbol.toLowerCase().includes(normalized) || stock.name.toLowerCase().includes(normalized))
+    return [...items].sort((a, b) => sort === 'change' ? b.change - a.change : sort === 'price' ? b.price - a.price : b.volRatio - a.volRatio)
+  }, [query, sort])
+
+  const score = Math.min(99, Math.round((pair[0].change + pair[1].change) * .62 + Math.log10(pair[0].volRatio + pair[1].volRatio) * 8))
+
+  const addToPair = (stock) => {
+    const existingIndex = pair.findIndex((item) => item.symbol === stock.symbol)
+    if (existingIndex >= 0) {
+      setActiveLeg(existingIndex)
+      return
+    }
+    const next = [...pair]
+    next[activeLeg] = stock
+    setPair(next)
+    setSelected(stock.symbol)
+    setActiveLeg(activeLeg === 0 ? 1 : 0)
+  }
+
+  const swapPair = () => {
+    setPair([pair[1], pair[0]])
+    setAllocation(100 - allocation)
+    setActiveLeg(activeLeg === 0 ? 1 : 0)
+  }
+
+  const handleLaunch = () => {
+    setLaunchState('signing')
+    window.setTimeout(() => setLaunchState('launched'), 1600)
+  }
+
+  useEffect(() => {
+    if (!drawerOpen) setLaunchState('idle')
+  }, [drawerOpen])
+
+  return (
+    <main className="app-shell">
+      <div className="noise" />
+      <div className="ambient ambient--one" />
+      <div className="ambient ambient--two" />
+
+      <header className="topbar">
+        <a className="brand" href="#top" aria-label="Penny Paired home">
+          <span className="brand__sigil"><i /><i /><i /></span>
+          <span><strong>PENNY</strong><em>PAIRED</em></span>
+        </a>
+        <nav className="main-nav" aria-label="Primary navigation">
+          <a className="is-active" href="#launchpad">Launchpad</a>
+          <a href="#signals">Signal lab</a>
+          <a href="#vault">Pair vault</a>
+        </nav>
+        <div className="topbar__actions">
+          <span className="chain-pill"><i /> RH CHAIN <b>PREVIEW</b></span>
+          <button className="wallet-button"><Icon name="wallet" size={17} /><span>Connect</span></button>
+        </div>
+      </header>
+
+      <section className="market-tape" aria-label="Market pulse">
+        <span className="tape-label">LIVE SIGNAL</span>
+        <div className="tape-track">
+          {[...STOCKS.slice(0, 8), ...STOCKS.slice(0, 4)].map((stock, index) => <span key={`${stock.symbol}-${index}`}><b>{stock.symbol}</b> <em>+{stock.change.toFixed(2)}%</em> <i>{stock.volume}</i></span>)}
+        </div>
+        <span className="market-clock">MARKET OPEN <b>02:33:19</b></span>
+      </section>
+
+      <section className="hero" id="top">
+        <div className="hero__copy">
+          <span className="eyebrow"><i /> YAHOO FINANCE // MOST ACTIVE PENNY STOCKS</span>
+          <h1>Pair the chaos.<br/><span>Launch the spread.</span></h1>
+          <p>A high-voltage launch console for discovering two-stock penny plays and staging them as a single on-chain intent.</p>
+        </div>
+        <div className="hero__telemetry">
+          <div className="telemetry-radar"><span>92</span><small>HEAT<br/>INDEX</small><i /><i /><i /></div>
+          <div className="telemetry-copy"><span>SCANNER STATUS</span><strong>75 targets acquired</strong><em>Snapshot synced 00:00 UTC</em></div>
+        </div>
+      </section>
+
+      <section className="launch-layout" id="launchpad">
+        <aside className={`stock-rail ${mobileRail ? 'is-mobile-open' : ''}`}>
+          <div className="panel-heading">
+            <div><span className="eyebrow">01 / TARGET RAIL</span><h2>Live fire</h2></div>
+            <button className="rail-close" onClick={() => setMobileRail(false)} aria-label="Close target rail"><Icon name="close" /></button>
+            <span className="target-count">{filteredStocks.length}</span>
+          </div>
+          <div className="search-control">
+            <Icon name="search" size={17} />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search targets" aria-label="Search stocks" />
+            <kbd>⌘ K</kbd>
+          </div>
+          <div className="filter-strip">
+            {[['volume', 'Velocity'], ['change', 'Heat'], ['price', 'Price']].map(([value, label]) => <button key={value} className={sort === value ? 'is-active' : ''} onClick={() => setSort(value)}>{label}</button>)}
+            <button className="filter-icon" aria-label="More filters"><Icon name="tune" size={16} /></button>
+          </div>
+          <div className="stock-list">
+            {filteredStocks.map((stock) => <StockRow key={stock.symbol} stock={stock} selected={selected === stock.symbol} paired={pair.some((item) => item.symbol === stock.symbol)} onSelect={() => setSelected(stock.symbol)} onPair={() => addToPair(stock)} />)}
+            {!filteredStocks.length && <div className="empty-state">No signals found.</div>}
+          </div>
+          <div className="source-note"><i /> Screener snapshot from Yahoo Finance <span>↗</span></div>
+        </aside>
+
+        <section className="pair-console">
+          <div className="console-topline">
+            <div><span className="eyebrow">02 / PAIRING CORE</span><h2>Atomic intent builder</h2></div>
+            <button className="mobile-targets" onClick={() => setMobileRail(true)}>Select targets <span>{filteredStocks.length}</span></button>
+            <div className="core-status"><span>CORE TEMP</span><strong>{score}°</strong><i><b style={{width: `${score}%`}} /></i></div>
+          </div>
+
+          <div className="orbital-stage">
+            <div className="orbital-grid" />
+            <div className="orbit orbit--one"><i /><i /></div>
+            <div className="orbit orbit--two"><i /></div>
+            <div className="energy-beam"><i style={{left: `${allocation}%`}} /></div>
+            <PairNode stock={pair[0]} leg="a" weight={allocation} active={activeLeg === 0} onClick={() => setActiveLeg(0)} />
+            <button className="swap-core" onClick={swapPair} aria-label="Swap pair legs"><Icon name="swap" /><span>SWAP</span></button>
+            <PairNode stock={pair[1]} leg="b" weight={100 - allocation} active={activeLeg === 1} onClick={() => setActiveLeg(1)} />
+            <div className="orbital-caption"><span><i /> click a target to inspect</span><span><i /> use + to load active leg</span></div>
+          </div>
+
+          <div className="allocation-deck">
+            <div className="allocation-heading">
+              <div><span>PAIR WEIGHT</span><strong>{pair[0].symbol} <em>{allocation}%</em></strong></div>
+              <div><strong><em>{100 - allocation}%</em> {pair[1].symbol}</strong><span>CAPITAL VECTOR</span></div>
+            </div>
+            <div className="range-wrap">
+              <input type="range" min="10" max="90" value={allocation} onChange={(event) => setAllocation(Number(event.target.value))} style={{'--allocation': `${allocation}%`}} aria-label="Pair allocation" />
+              <div className="range-ticks">{[10,20,30,40,50,60,70,80,90].map(n => <i key={n} />)}</div>
+            </div>
+          </div>
+
+          <div className="console-controls">
+            <div className="mode-picker">
+              <span className="control-label">PAIR LOGIC</span>
+              <div className="mode-options">{MODES.map((item) => <button key={item.id} className={modeId === item.id ? 'is-active' : ''} onClick={() => setModeId(item.id)}><i>{item.icon}</i><span><strong>{item.label}</strong><em>{item.sub}</em></span><b /></button>)}</div>
+            </div>
+            <div className="budget-control">
+              <span className="control-label">MISSION BUDGET</span>
+              <div className="budget-input"><span>$</span><input type="number" min="10" max="100000" value={budget} onChange={(event) => setBudget(Math.max(0, Number(event.target.value)))} /><em>USD</em></div>
+              <div className="quick-budgets">{[100,250,500,1000].map(amount => <button key={amount} className={budget === amount ? 'is-active' : ''} onClick={() => setBudget(amount)}>${amount >= 1000 ? '1K' : amount}</button>)}</div>
+            </div>
+          </div>
+
+          <div className="console-footer">
+            <div className="pair-signal">
+              <span className="signal-orb"><i /></span>
+              <span><small>COMPOSITE SIGNAL</small><strong>{score > 80 ? 'EXTREME VELOCITY' : score > 65 ? 'HIGH VELOCITY' : 'ACTIVE'}</strong></span>
+              <em>{score}/100</em>
+            </div>
+            <button className="stage-button" onClick={() => setDrawerOpen(true)}><span>Stage pair</span><Icon name="arrow" /><i /></button>
+          </div>
+        </section>
+
+        <aside className="signal-panel" id="signals">
+          <div className="panel-heading panel-heading--compact"><div><span className="eyebrow">03 / SIGNAL LENS</span><h2>{activeStock.symbol}</h2></div><span className="live-badge">LIVE</span></div>
+          <div className="signal-price"><div><strong>${activeStock.price < .01 ? activeStock.price.toFixed(3) : activeStock.price.toFixed(2)}</strong><span>+{activeStock.change.toFixed(2)}%</span></div><small>{activeStock.name}</small></div>
+          <div className="signal-chart">
+            <div className="chart-grid" />
+            <Sparkline values={activeStock.spark} id={`${activeStock.symbol}-large`} large />
+            <span className="chart-time">09:30</span><span className="chart-time">NOW</span>
+          </div>
+          <div className="signal-metrics">
+            <div><span>VOLUME</span><strong>{activeStock.volume}</strong><em>↗ session</em></div>
+            <div><span>VOL / AVG</span><strong>{activeStock.volRatio > 999 ? '>999×' : `${activeStock.volRatio.toFixed(1)}×`}</strong><em>abnormal</em></div>
+            <div><span>MARKET CAP</span><strong>{activeStock.cap}</strong><em>micro cap</em></div>
+            <div><span>MOMENTUM</span><strong>{Math.min(99, Math.round(activeStock.change * 1.4))}</strong><em>hot signal</em></div>
+          </div>
+          <div className="radar-card">
+            <div className="radar-card__head"><span>ANOMALY RADAR</span><em>4 axes</em></div>
+            <svg viewBox="0 0 200 150" role="img" aria-label="Market anomaly radar">
+              <g className="radar-grid"><polygon points="100,15 175,75 100,135 25,75"/><polygon points="100,35 150,75 100,115 50,75"/><polygon points="100,55 125,75 100,95 75,75"/><path d="M100 15v120M25 75h150"/></g>
+              <polygon className="radar-shape" points={`100,${25 - Math.min(activeStock.change, 20) * .4} ${140 + Math.min(activeStock.volRatio, 100) * .3},75 100,${105 + Math.min(activeStock.change, 50) * .35} ${65 - Math.min(activeStock.change, 50) * .4},75`} />
+              <g className="radar-labels"><text x="100" y="10">VELOCITY</text><text x="178" y="78">VOLUME</text><text x="100" y="148">RISK</text><text x="2" y="78">LIQUIDITY</text></g>
+            </svg>
+          </div>
+          <button className="load-target" onClick={() => addToPair(activeStock)}><span>Load into leg {activeLeg === 0 ? 'A' : 'B'}</span><strong>+</strong></button>
+        </aside>
+      </section>
+
+      <footer className="footer" id="vault">
+        <div><span className="brand__sigil brand__sigil--small"><i /><i /><i /></span><p>Penny Paired is a UI concept. Market data is a static Yahoo Finance screener snapshot and may be delayed.</p></div>
+        <span>DESIGNED FOR RH CHAIN • SIMULATION ONLY • NOT FINANCIAL ADVICE</span>
+      </footer>
+
+      <ReviewDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} pair={pair} allocation={allocation} mode={mode} budget={budget} onLaunch={handleLaunch} launchState={launchState} />
+    </main>
+  )
+}
