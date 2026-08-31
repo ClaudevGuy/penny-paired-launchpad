@@ -550,7 +550,7 @@ export default function App() {
 
       <header className="topbar">
         <a className="brand" href="#top" aria-label="PennyPons home">
-          <span className="brand__sigil"><i /><i /><i /></span>
+          <span className="brand__sigil"><img src="/branding/pennypons-mark-v1.png" alt="" /></span>
           <span><strong>PENNY</strong><em>PONS</em></span>
         </a>
         <nav className="main-nav" aria-label="Primary navigation">
@@ -736,7 +736,7 @@ export default function App() {
       </section></>}
 
       <footer className="footer" id="vault">
-        <div><span className="brand__sigil brand__sigil--small"><i /><i /><i /></span><p>PennyPons is a UI concept. Market data is a static Yahoo Finance screener snapshot and may be delayed.</p></div>
+        <div><span className="brand__sigil brand__sigil--small"><img src="/branding/pennypons-mark-v1.png" alt="" /></span><p>PennyPons is a UI concept. Market data is a static Yahoo Finance screener snapshot and may be delayed.</p></div>
         <span>DESIGNED FOR RH CHAIN • SIMULATION ONLY • NOT FINANCIAL ADVICE</span>
       </footer>
 
