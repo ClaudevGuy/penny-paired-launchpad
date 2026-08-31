@@ -1,4 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
+
+const PHANTOM_DOWNLOAD_URL = 'https://phantom.com/download'
+const PHANTOM_DISCONNECT_KEY = 'pennypons:phantom-disconnected'
+
+const EVM_NETWORK_NAMES = {
+  '0x1': 'Ethereum',
+  '0x89': 'Polygon',
+  '0x2105': 'Base',
+  '0xa4b1': 'Arbitrum One',
+  '0x8f': 'Monad',
+  '0x1237': 'Robinhood Chain',
+  '0xb626': 'Robinhood Chain Testnet',
+}
 
 const STOCKS = [
   { symbol: 'PASW', name: 'Ping An Biomedical', logo: '/logos/PASW.png', price: 0.16, change: 19.26, volume: '336.5M', volRatio: 484.6, cap: '19.7M', spark: [10, 12, 11, 17, 16, 25, 23, 38, 35, 55, 48, 73] },
@@ -82,6 +96,205 @@ const Icon = ({ name, size = 18 }) => {
     info: <><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/></>,
   }
   return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>
+}
+
+const PhantomMark = ({ size = 20 }) => (
+  <svg className="phantom-mark" aria-hidden="true" width={size} height={size} viewBox="0 0 32 32">
+    <defs><linearGradient id="phantom-gradient" x1="4" y1="3" x2="28" y2="29" gradientUnits="userSpaceOnUse"><stop stopColor="#AB9FF2"/><stop offset="1" stopColor="#7C65C1"/></linearGradient></defs>
+    <circle cx="16" cy="16" r="15" fill="url(#phantom-gradient)"/>
+    <path fill="#fff" d="M25.1 15.3c0 5.1-4.4 9.2-9.8 9.2-1.7 0-3.3-.4-4.7-1.1.9-.7 1.8-1.6 2.5-2.6-.5.3-1.1.5-1.8.5-2.1 0-3.8-1.7-3.8-3.7 0-1.9 1.5-3.5 3.4-3.7.4-3.7 3.5-6.5 7.3-6.5 4.1 0 7.3 3.2 7.3 7.2 0 .2 0 .5-.1.7h-.3Zm-11.7-.5a1.2 1.2 0 1 0 0-2.4 1.2 1.2 0 0 0 0 2.4Zm5.5 0a1.2 1.2 0 1 0 0-2.4 1.2 1.2 0 0 0 0 2.4Z"/>
+  </svg>
+)
+
+const getPhantomEthereumProvider = () => {
+  if (typeof window === 'undefined') return null
+  const directProvider = window.phantom?.ethereum
+  if (directProvider?.isPhantom) return directProvider
+  const injectedProviders = window.ethereum?.providers
+  if (Array.isArray(injectedProviders)) {
+    const phantomProvider = injectedProviders.find((provider) => provider?.isPhantom)
+    if (phantomProvider) return phantomProvider
+  }
+  return window.ethereum?.isPhantom ? window.ethereum : null
+}
+
+const shortenAddress = (address) => address ? `${address.slice(0, 6)}…${address.slice(-4)}` : ''
+
+function WalletConnector() {
+  const manuallyDisconnectedRef = useRef(false)
+  const [status, setStatus] = useState('idle')
+  const [address, setAddress] = useState('')
+  const [chainId, setChainId] = useState('')
+  const [installed, setInstalled] = useState(false)
+  const [open, setOpen] = useState(false)
+  const [error, setError] = useState('')
+  const [copied, setCopied] = useState(false)
+
+  const updateConnection = async (provider, accounts) => {
+    const nextAccounts = accounts || await provider.request({ method: 'eth_accounts' })
+    if (!nextAccounts?.[0]) {
+      setAddress('')
+      setChainId('')
+      setStatus('idle')
+      return
+    }
+    const nextChainId = await provider.request({ method: 'eth_chainId' })
+    setAddress(nextAccounts[0])
+    setChainId(nextChainId)
+    setStatus('connected')
+    setError('')
+  }
+
+  useEffect(() => {
+    const provider = getPhantomEthereumProvider()
+    setInstalled(Boolean(provider))
+    if (!provider) return undefined
+
+    manuallyDisconnectedRef.current = window.sessionStorage.getItem(PHANTOM_DISCONNECT_KEY) === '1'
+
+    const handleAccountsChanged = (accounts) => {
+      if (manuallyDisconnectedRef.current) return
+      updateConnection(provider, accounts).catch(() => setStatus('idle'))
+    }
+    const handleChainChanged = (nextChainId) => {
+      setChainId(nextChainId)
+    }
+    const handleProviderDisconnect = () => {
+      setAddress('')
+      setChainId('')
+      setStatus('idle')
+    }
+
+    if (!manuallyDisconnectedRef.current) {
+      updateConnection(provider).catch(() => setStatus('idle'))
+    }
+    provider.on?.('accountsChanged', handleAccountsChanged)
+    provider.on?.('chainChanged', handleChainChanged)
+    provider.on?.('disconnect', handleProviderDisconnect)
+
+    return () => {
+      provider.removeListener?.('accountsChanged', handleAccountsChanged)
+      provider.removeListener?.('chainChanged', handleChainChanged)
+      provider.removeListener?.('disconnect', handleProviderDisconnect)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!open) return undefined
+    const closeOnEscape = (event) => event.key === 'Escape' && setOpen(false)
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [open])
+
+  const connect = async () => {
+    const provider = getPhantomEthereumProvider()
+    setInstalled(Boolean(provider))
+    setCopied(false)
+    setError('')
+
+    if (!provider) {
+      setStatus('missing')
+      setOpen(true)
+      return
+    }
+
+    manuallyDisconnectedRef.current = false
+    window.sessionStorage.removeItem(PHANTOM_DISCONNECT_KEY)
+    setStatus('connecting')
+
+    try {
+      const accounts = await provider.request({ method: 'eth_requestAccounts' })
+      await updateConnection(provider, accounts)
+      setOpen(true)
+    } catch (connectionError) {
+      const rejected = connectionError?.code === 4001
+      setStatus('error')
+      setError(rejected ? 'Connection cancelled in Phantom.' : (connectionError?.message || 'Phantom could not connect.'))
+      setOpen(true)
+    }
+  }
+
+  const disconnect = () => {
+    manuallyDisconnectedRef.current = true
+    window.sessionStorage.setItem(PHANTOM_DISCONNECT_KEY, '1')
+    setAddress('')
+    setChainId('')
+    setStatus('idle')
+    setError('')
+    setOpen(false)
+  }
+
+  const copyAddress = async () => {
+    if (!address) return
+    try {
+      await navigator.clipboard.writeText(address)
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1600)
+    } catch {
+      setError('Could not copy the address.')
+    }
+  }
+
+  const chainName = EVM_NETWORK_NAMES[chainId] || (chainId ? `EVM chain ${parseInt(chainId, 16)}` : 'Unknown network')
+  const isRobinhoodChain = chainId === '0x1237' || chainId === '0xb626'
+  const isConnected = status === 'connected' && Boolean(address)
+
+  return (
+    <>
+      <button
+        type="button"
+        className={`wallet-button ${isConnected ? 'is-connected' : ''}`}
+        onClick={() => isConnected ? setOpen(true) : connect()}
+        aria-label={isConnected ? `Phantom connected as ${address}` : 'Connect Phantom wallet'}
+      >
+        {status === 'connecting' ? <i className="wallet-button__loader" /> : <PhantomMark size={18} />}
+        <span>{status === 'connecting' ? 'Opening Phantom…' : isConnected ? shortenAddress(address) : 'Connect'}</span>
+        {isConnected && <i className="wallet-button__dot" />}
+      </button>
+
+      {open && createPortal(
+        <div className="wallet-modal-backdrop" onMouseDown={() => setOpen(false)}>
+          <section className="wallet-modal" role="dialog" aria-modal="true" aria-labelledby="wallet-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+            <div className="wallet-modal__topbar">
+              <div><span>WEB3 ACCESS</span><h2 id="wallet-modal-title">Phantom wallet</h2></div>
+              <button type="button" className="icon-button" onClick={() => setOpen(false)} aria-label="Close wallet panel"><Icon name="close" /></button>
+            </div>
+
+            {isConnected ? <>
+              <div className="wallet-account">
+                <PhantomMark size={46} />
+                <div><span>CONNECTED ADDRESS</span><strong>{shortenAddress(address)}</strong></div>
+                <b>LIVE</b>
+              </div>
+              <div className="wallet-network">
+                <div><span>CURRENT NETWORK</span><strong>{chainName}</strong></div>
+                <em>{chainId}</em>
+              </div>
+              <div className={`wallet-compatibility ${isRobinhoodChain ? 'is-ready' : ''}`}>
+                <Icon name={isRobinhoodChain ? 'check' : 'info'} size={18} />
+                <p>{isRobinhoodChain ? <><strong>Robinhood Chain ready.</strong> Phantom is exposing the expected chain.</> : <><strong>Wallet connected.</strong> Phantom does not currently support custom Robinhood Chain networks, so PennyPons will not request a launch transaction from this wallet yet.</>}</p>
+              </div>
+              <div className="wallet-modal__actions">
+                <button type="button" className="wallet-copy" onClick={copyAddress}>{copied ? 'Copied' : 'Copy address'}</button>
+                <button type="button" className="wallet-disconnect" onClick={disconnect}>Disconnect</button>
+              </div>
+            </> : <>
+              <div className="wallet-connect-card">
+                <PhantomMark size={54} />
+                <div><strong>{installed ? 'Connect your Phantom' : 'Phantom not detected'}</strong><span>{installed ? 'Approve access in the Phantom extension. PennyPons only requests your public EVM address.' : 'Install the Phantom browser extension, then return here and connect.'}</span></div>
+              </div>
+              {error && <p className="wallet-error" role="alert">{error}</p>}
+              {installed
+                ? <button type="button" className="wallet-primary" onClick={connect} disabled={status === 'connecting'}>{status === 'connecting' ? 'Waiting for Phantom…' : 'Connect Phantom'}</button>
+                : <a className="wallet-primary" href={PHANTOM_DOWNLOAD_URL} target="_blank" rel="noreferrer">Install Phantom <Icon name="arrow" size={17} /></a>}
+              <p className="wallet-safety">PennyPons never asks for your recovery phrase or private key.</p>
+            </>}
+          </section>
+        </div>,
+        document.body,
+      )}
+    </>
+  )
 }
 
 const STOCK_ART_PALETTES = [
@@ -545,7 +758,7 @@ export default function App() {
         </nav>
         <div className="topbar__actions">
           <span className="chain-pill"><i /> RH CHAIN <b>PREVIEW</b></span>
-          <button className="wallet-button"><Icon name="wallet" size={17} /><span>Connect</span></button>
+          <WalletConnector />
         </div>
       </header>
 
