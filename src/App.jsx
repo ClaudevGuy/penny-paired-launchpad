@@ -15,21 +15,6 @@ const STOCKS = [
   { symbol: 'LGPS', name: 'LogProstyle Inc.', logo: '/logos/LGPS.png', price: 1.23, change: 16.04, volume: '32.2M', volRatio: 9.3, cap: '29.0M', spark: [10, 9, 12, 11, 15, 14, 16, 19, 18, 22, 24, 29] },
 ]
 
-const TOP_PAIR_DATA = [
-  { symbol: 'PASW', launched: 59, liquidity: '$5.66M' },
-  { symbol: 'RDHL', launched: 21, liquidity: '$1.87M' },
-  { symbol: 'FUNR', launched: 16, liquidity: '$942K' },
-  { symbol: 'GPRO', launched: 8, liquidity: '$621K' },
-  { symbol: 'CLGN', launched: 5, liquidity: '$388K' },
-]
-
-const TRENDING_LAUNCHES = [
-  { name: 'PennyPons', ticker: 'PONNY', paired: 'PASW', mc: '$65.6K', liq: '$32K', vol: '$2.12M', age: '23m', colors: ['#d7ff53', '#17340c', '#f7ffd9'] },
-  { name: 'Red Pill Bio', ticker: 'RPILL', paired: 'RDHL', mc: '$18.4K', liq: '$12.8K', vol: '$448K', age: '41m', colors: ['#ff6780', '#3d101d', '#ffd3d9'] },
-  { name: 'Fun Runner', ticker: 'RUNR', paired: 'FUNR', mc: '$9.8K', liq: '$8.1K', vol: '$294K', age: '1h', colors: ['#ffad5b', '#41220c', '#fff0cf'] },
-  { name: 'Bag Cam', ticker: 'BAG', paired: 'GPRO', mc: '$27.2K', liq: '$19.5K', vol: '$181K', age: '2h', colors: ['#77d4ff', '#102c3e', '#d8f5ff'] },
-]
-
 const MODES = [
   { id: 'momentum', label: 'Full send', sub: 'Ride both bags up', icon: '↗' },
   { id: 'shield', label: 'Hedge the chaos', sub: 'Give one bag a helmet', icon: '◈' },
@@ -550,11 +535,11 @@ export default function App() {
 
       <header className="topbar">
         <a className="brand" href="#top" aria-label="PennyPons home">
-          <span className="brand__sigil"><img src="/branding/pennypons-mark-v1.png" alt="" /></span>
+          <span className="brand__sigil"><img src="/branding/pennypons-mark-v5.png" alt="" /></span>
           <span><strong>PENNY</strong><em>PONS</em></span>
         </a>
         <nav className="main-nav" aria-label="Primary navigation">
-          <a className="is-active" href="#launches">Explore</a>
+          <button type="button" className="is-active" onClick={openStockPicker}>Stocks</button>
           <button type="button" onClick={() => openTokenLaunch(activeStock)}>Create token</button>
           <button type="button" onClick={fastLaunch}>Fast launch</button>
         </nav>
@@ -592,41 +577,22 @@ export default function App() {
               <span>＋</span><div><strong>Launch your meme</strong><em>Pair it with any penny stock</em></div><Icon name="arrow" size={19} />
             </button>
           </div>
-          <div className="hero-alternative">or <button onClick={openStockPicker}>explore what is already launching</button></div>
+          <div className="hero-alternative">or <button onClick={openStockPicker}>browse all available penny stocks</button></div>
           <button className="fast-launch-chip" onClick={fastLaunch}><span>⚡</span> Fast launch — pair the hottest movers</button>
         </div>
       </section>
 
-      <section className="launch-market" id="launches">
-        <section className="top-pairs-section">
-          <div className="market-section-heading"><div><span>QUOTE STOCKS</span><h2>Top penny-stock pairs</h2></div><p>Stocks being used as the quote side of launches right now.</p></div>
-          <div className="top-pairs-grid">
-            {TOP_PAIR_DATA.map((pair, index) => {
-              const stock = STOCKS.find((item) => item.symbol === pair.symbol) || STOCKS[index]
-              return <button className={`top-pair-card ${index === 2 ? 'is-featured' : ''}`} key={pair.symbol} onClick={() => openTokenLaunch(stock)}>
-                <div className="top-pair-card__identity"><StockArt stock={stock} size="market" /><span><strong>{stock.name}</strong><em>${stock.symbol}</em></span></div>
-                <div className="top-pair-card__stats"><span>Tokens launched on top<strong>{pair.launched}</strong></span><span>Paired liquidity<strong>{pair.liquidity}</strong></span></div>
-                <div className="top-pair-card__cta">Launch on ${stock.symbol} <Icon name="arrow" size={15} /></div>
-              </button>
-            })}
-          </div>
-          <div className="market-section-note">Preview data only · contract-backed launches arrive with the Robinhood Chain integration.</div>
-        </section>
-
-        <section className="trending-launches-section">
-          <div className="market-section-heading market-section-heading--inline"><div><span>HOT RIGHT NOW</span><h2>Trending launches</h2></div><p>Most traded launch previews in the last 24h.</p><button onClick={openStockPicker}>View all →</button></div>
-          <div className="trending-grid">
-            {TRENDING_LAUNCHES.map((launch) => {
-              const stock = STOCKS.find((item) => item.symbol === launch.paired) || STOCKS[0]
-              return <article className="launch-card" key={launch.ticker}>
-                <TokenArtwork launch={launch} />
-                <div className="launch-card__title"><span><strong>{launch.name}</strong><em>${launch.ticker}</em></span><button onClick={() => openTokenLaunch(stock)}>Launch on top</button></div>
-                <div className="launch-card__metrics"><span><strong>{launch.mc}</strong><em>MC</em></span><span><strong>{launch.liq}</strong><em>LIQ</em></span><span><strong>{launch.vol}</strong><em>VOL 24H</em></span></div>
-                <div className="launch-card__footer"><span>Paired with ${launch.paired}</span><em>{launch.age} ago</em></div>
-              </article>
-            })}
-          </div>
-        </section>
+      <section className="launch-logic" aria-labelledby="launch-logic-title">
+        <div className="launch-logic__heading">
+          <div><span>HOW PENNYPONS WORKS</span><h2 id="launch-logic-title">From meme to market in three moves.</h2></div>
+          <p>A focused launch flow built around the penny stock you choose.</p>
+        </div>
+        <div className="launch-logic__grid">
+          <article><span>01</span><i>✦</i><h3>Create the meme</h3><p>Add the name, ticker, lore, image, and community links.</p></article>
+          <article><span>02</span><i>⌁</i><h3>Choose the penny stock</h3><p>Your selected stock becomes the quote side of the launch.</p></article>
+          <article><span>03</span><i>↗</i><h3>Set the first buy</h3><p>The deployer’s buy is prepared with the launch transaction.</p></article>
+        </div>
+        <div className="launch-logic__cta"><div><strong>Pick a stock. Make it a meme.</strong><span>Browse all 12 available penny-stock pairs.</span></div><button type="button" onClick={openStockPicker}>Browse penny stocks <Icon name="arrow" size={17} /></button></div>
       </section>
 
       {false && <><section className="builder-intro">
@@ -736,7 +702,7 @@ export default function App() {
       </section></>}
 
       <footer className="footer" id="vault">
-        <div><span className="brand__sigil brand__sigil--small"><img src="/branding/pennypons-mark-v1.png" alt="" /></span><p>PennyPons is a UI concept. Market data is a static Yahoo Finance screener snapshot and may be delayed.</p></div>
+        <div><span className="brand__sigil brand__sigil--small"><img src="/branding/pennypons-mark-v5.png" alt="" /></span><p>PennyPons is a UI concept. Market data is a static Yahoo Finance screener snapshot and may be delayed.</p></div>
         <span>DESIGNED FOR RH CHAIN • SIMULATION ONLY • NOT FINANCIAL ADVICE</span>
       </footer>
 
