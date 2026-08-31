@@ -596,6 +596,8 @@ body { font-size: 17px; }
 .launch-route { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
 .launch-route__option { min-height: 88px; display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 12px; padding: 16px; border: 1px solid rgba(255,255,255,.075); border-radius: 18px; background: #171717; }
 .launch-route__option.is-active { border-color: rgba(215,255,83,.5); background: rgba(215,255,83,.055); }
+.launch-route__option.is-coming-soon { opacity: .72; }
+.launch-route__option.is-coming-soon > b { background: rgba(255,255,255,.07); color: rgba(255,255,255,.55); }
 .launch-route__option > span { font-size: 24px; }
 .launch-route__option > div { display: flex; flex-direction: column; gap: 7px; }
 .launch-route__option strong { font-size: 13px; }
@@ -649,6 +651,21 @@ body { font-size: 17px; }
 .market-cap-field > div strong { color: var(--lime); font: 600 14px/1 var(--mono); }
 .market-cap-field input { width: 100%; margin: 20px 0 12px; accent-color: var(--lime); }
 .market-cap-field em { font-style: normal; }
+.first-buy-field { margin-top: 24px; padding: 18px; border: 1px solid rgba(215,255,83,.2); border-radius: 18px; background: linear-gradient(135deg, rgba(215,255,83,.05), #191919 48%); }
+.first-buy-field__heading { display: flex; justify-content: space-between; gap: 24px; }
+.first-buy-field__heading > div { display: flex; flex-direction: column; gap: 7px; }
+.first-buy-field__heading span { color: #f2f2f2; font-size: 12px; font-weight: 800; }
+.first-buy-field__heading em { color: rgba(255,255,255,.36); font-size: 10px; line-height: 1.4; font-style: normal; font-weight: 400; }
+.first-buy-field__heading > strong { color: var(--lime); font: 700 18px/1 var(--mono); }
+.first-buy-field__input { height: 54px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; margin-top: 16px; padding: 0 14px; border: 1px solid rgba(255,255,255,.09); border-radius: 13px; background: #202020; }
+.first-buy-field__input > span { color: var(--lime); font: 700 15px/1 var(--mono); }
+.first-buy-field__input input { min-width: 0; border: 0; outline: 0; background: transparent; color: #f4f4f4; font: 700 18px/1 var(--mono); }
+.first-buy-field__input em { color: rgba(255,255,255,.3); font: 600 8px/1 var(--mono); font-style: normal; }
+.first-buy-field__presets { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; margin-top: 9px; }
+.first-buy-field__presets button { height: 34px; border: 1px solid rgba(255,255,255,.06); border-radius: 9px; background: #202020; color: rgba(255,255,255,.42); font: 600 9px/1 var(--mono); cursor: pointer; }
+.first-buy-field__presets button:hover, .first-buy-field__presets button.is-active { border-color: rgba(215,255,83,.34); background: rgba(215,255,83,.1); color: var(--lime); }
+.first-buy-field > p { display: flex; align-items: center; gap: 7px; margin: 14px 0 0; color: rgba(255,255,255,.35); font-size: 9px; }
+.first-buy-field > p svg { color: var(--lime); }
 .launch-preview { position: sticky; top: 18px; align-self: start; padding: 20px; background: #1b1b1b; }
 .launch-preview__art { width: 100%; aspect-ratio: 1.15/1; overflow: hidden; border-radius: 18px; background: #0a0a0a; }
 .launch-preview__art > img, .token-art--preview { width: 100%; height: 100%; object-fit: cover; }
@@ -660,6 +677,7 @@ body { font-size: 17px; }
 .launch-preview dl > div { min-height: 54px; display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid rgba(255,255,255,.07); }
 .launch-preview dt { color: rgba(255,255,255,.4); font-size: 11px; }
 .launch-preview dd { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 11px; font-weight: 700; text-align: right; }
+.launch-preview dd small { padding: 4px 6px; border-radius: 999px; background: rgba(215,255,83,.09); color: var(--lime); font: 700 7px/1 var(--mono); }
 .launch-preview dd.is-lime { color: var(--lime); }
 .launch-preview__note { margin-top: 17px; padding: 13px; border: 1px solid rgba(215,255,83,.16); border-radius: 13px; background: rgba(215,255,83,.045); color: rgba(255,255,255,.44); font-size: 9px; line-height: 1.5; }
 .launch-ready { display: flex; gap: 10px; margin-top: 13px; padding: 12px; border-radius: 13px; background: rgba(215,255,83,.09); color: var(--lime); }
@@ -667,6 +685,36 @@ body { font-size: 17px; }
 .launch-ready strong { font-size: 10px; }
 .launch-ready em { color: rgba(255,255,255,.37); font-size: 8px; font-style: normal; }
 .launch-preview__submit { width: 100%; height: 54px; display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 16px; border: 0; border-radius: 15px; background: var(--lime); color: #0d0d0d; font-size: 12px; font-weight: 800; cursor: pointer; }
+.stock-browser-backdrop { position: fixed; z-index: 42; inset: 0; display: grid; place-items: center; overflow-y: auto; padding: 24px; background: rgba(4,4,4,.86); backdrop-filter: blur(14px); animation: modal-fade .22s both; }
+.stock-browser { width: min(1180px, 100%); max-height: calc(100dvh - 48px); display: flex; flex-direction: column; overflow: hidden; padding: 26px; border: 1px solid rgba(255,255,255,.1); border-radius: 28px; background: #111211; box-shadow: 0 40px 140px rgba(0,0,0,.7); animation: modal-rise .3s cubic-bezier(.2,.8,.2,1) both; }
+.stock-browser__topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 30px; }
+.stock-browser__topbar > div { display: flex; flex-direction: column; gap: 7px; }
+.stock-browser__topbar span { color: var(--lime); font: 600 8px/1 var(--mono); letter-spacing: .1em; }
+.stock-browser__topbar h2 { margin: 0; font-size: 34px; line-height: 1.05; letter-spacing: -.05em; }
+.stock-browser__topbar p { margin: 0; color: rgba(255,255,255,.38); font-size: 12px; }
+.stock-browser__search { min-height: 58px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; margin-top: 22px; padding: 0 16px; border: 1px solid rgba(215,255,83,.22); border-radius: 15px; background: #1b1b1b; color: var(--lime); }
+.stock-browser__search input { min-width: 0; border: 0; outline: 0; background: transparent; color: #f2f2f2; font-size: 14px; }
+.stock-browser__search span { padding: 7px 9px; border-radius: 999px; background: rgba(215,255,83,.09); color: var(--lime); font: 700 8px/1 var(--mono); }
+.stock-browser__grid { min-height: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 11px; margin-top: 15px; overflow-y: auto; padding-right: 5px; scrollbar-width: thin; scrollbar-color: rgba(215,255,83,.3) transparent; }
+.stock-browser-card { min-width: 0; display: flex; flex-direction: column; padding: 15px; border: 1px solid rgba(255,255,255,.07); border-radius: 17px; background: #191919; color: #f2f2f2; text-align: left; cursor: pointer; transition: .2s; }
+.stock-browser-card:hover { border-color: rgba(215,255,83,.45); background: #1d2018; transform: translateY(-2px); }
+.stock-browser-card__top { display: grid; grid-template-columns: 46px 1fr auto; align-items: center; gap: 11px; }
+.stock-art--browser { width: 46px; height: 46px; border-radius: 13px; }
+.stock-browser-card__top > span { min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.stock-browser-card__top strong { font: 800 14px/1 var(--mono); }
+.stock-browser-card__top em { overflow: hidden; color: rgba(255,255,255,.38); font-size: 10px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
+.stock-browser-card__top > svg { color: rgba(255,255,255,.28); }
+.stock-browser-card__price { display: flex; align-items: baseline; justify-content: space-between; margin-top: 19px; }
+.stock-browser-card__price strong { font: 700 21px/1 var(--mono); }
+.stock-browser-card__price span { color: var(--lime); font: 700 10px/1 var(--mono); }
+.stock-browser-card__metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; padding-top: 13px; border-top: 1px solid rgba(255,255,255,.06); }
+.stock-browser-card__metrics span { display: flex; flex-direction: column; gap: 6px; color: rgba(255,255,255,.27); font: 500 7px/1 var(--mono); }
+.stock-browser-card__metrics strong { color: rgba(255,255,255,.68); font-size: 10px; }
+.stock-browser-card__action { margin-top: 15px; padding-top: 11px; border-top: 1px solid rgba(255,255,255,.06); color: rgba(255,255,255,.42); font-size: 9px; font-weight: 700; }
+.stock-browser-card:hover .stock-browser-card__action { color: var(--lime); }
+.stock-browser__empty { grid-column: 1 / -1; min-height: 220px; display: grid; place-items: center; color: rgba(255,255,255,.35); font-size: 13px; }
+.stock-browser__foot { display: flex; align-items: center; gap: 7px; margin-top: 15px; color: rgba(255,255,255,.25); font: 500 8px/1 var(--mono); }
+.stock-browser__foot i { width: 6px; height: 6px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 9px var(--lime); }
 @keyframes modal-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes modal-rise { from { opacity: 0; transform: translateY(18px) scale(.99); } to { opacity: 1; transform: none; } }
 
@@ -707,6 +755,7 @@ body { font-size: 17px; }
   .launch-route { grid-template-columns: 1fr; }
   .token-modal-backdrop { padding: 10px; }
   .token-modal { min-height: calc(100dvh - 20px); }
+  .stock-browser__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 620px) {
@@ -773,6 +822,13 @@ body { font-size: 17px; }
   .paired-asset-picker { padding: 14px; }
   .paired-asset-picker__heading { align-items: flex-start; flex-direction: column; }
   .launch-preview { padding: 16px; border-radius: 20px; }
+  .first-buy-field__heading { align-items: flex-start; flex-direction: column; gap: 12px; }
+  .first-buy-field__presets { grid-template-columns: repeat(3, 1fr); }
+  .stock-browser-backdrop { display: block; padding: 0; }
+  .stock-browser { width: 100%; height: 100dvh; min-height: 0; max-height: 100dvh; padding: 18px; border: 0; border-radius: 0; }
+  .stock-browser__topbar h2 { font-size: 29px; }
+  .stock-browser__search { margin-top: 18px; }
+  .stock-browser__grid { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

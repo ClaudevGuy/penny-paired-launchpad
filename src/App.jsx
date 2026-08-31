@@ -243,13 +243,14 @@ function TokenLaunchModal({ open, onClose, initialStock }) {
   const [xProfile, setXProfile] = useState('')
   const [telegram, setTelegram] = useState('')
   const [pairSymbol, setPairSymbol] = useState(initialStock?.symbol || STOCKS[0].symbol)
-  const [marketCap, setMarketCap] = useState(25000)
+  const [firstBuy, setFirstBuy] = useState(250)
   const [imagePreview, setImagePreview] = useState('')
   const [submitted, setSubmitted] = useState(false)
 
   useEffect(() => {
     if (!open) return
     setPairSymbol(initialStock?.symbol || STOCKS[0].symbol)
+    setFirstBuy(250)
     setSubmitted(false)
     const closeOnEscape = (event) => event.key === 'Escape' && onClose()
     window.addEventListener('keydown', closeOnEscape)
@@ -285,7 +286,7 @@ function TokenLaunchModal({ open, onClose, initialStock }) {
 
         <div className="launch-route">
           <div className="launch-route__option is-active"><span>🏭</span><div><strong>Launch on PennyPons</strong><em>Launch your meme paired with a penny stock.</em></div><b>RECOMMENDED</b></div>
-          <div className="launch-route__option"><span>⚡</span><div><strong>Fast launch</strong><em>Use the defaults and get straight to the pair.</em></div><b>QUICK</b></div>
+          <div className="launch-route__option is-coming-soon"><span>⚡</span><div><strong>Fast launch</strong><em>Use the defaults and get straight to the pair.</em></div><b>COMING SOON</b></div>
         </div>
 
         <div className="token-modal__layout">
@@ -320,7 +321,12 @@ function TokenLaunchModal({ open, onClose, initialStock }) {
               </div>
             </div>
 
-            <div className="market-cap-field"><div><span>Starting market cap</span><strong>${marketCap.toLocaleString()}</strong></div><input type="range" min="5000" max="100000" step="1000" value={marketCap} onChange={(event) => setMarketCap(Number(event.target.value))} /><div><em>$5K</em><em>$100K</em></div></div>
+            <div className="first-buy-field">
+              <div className="first-buy-field__heading"><div><span>First buy</span><em>The deployer is first to buy onchain when the meme launches.</em></div><strong>${firstBuy.toLocaleString()}</strong></div>
+              <label className="first-buy-field__input"><span>$</span><input type="number" min="0" max="10000" step="10" value={firstBuy} onChange={(event) => setFirstBuy(Math.min(10000, Math.max(0, Number(event.target.value))))} /><em>USD EST.</em></label>
+              <div className="first-buy-field__presets">{[0, 100, 250, 500, 1000].map((amount) => <button type="button" className={firstBuy === amount ? 'is-active' : ''} key={amount} onClick={() => setFirstBuy(amount)}>{amount === 0 ? 'No buy' : `$${amount >= 1000 ? '1K' : amount}`}</button>)}</div>
+              <p><Icon name="bolt" size={14} /> Bundled into the deployer’s launch transaction.</p>
+            </div>
           </form>
 
           <aside className="launch-preview">
@@ -328,7 +334,7 @@ function TokenLaunchModal({ open, onClose, initialStock }) {
             <div className="launch-preview__title"><span>YOUR LAUNCH</span><h3>{name || 'Your token'}</h3><strong>${ticker || 'TICKER'}</strong></div>
             <dl>
               <div><dt>Paired with</dt><dd><StockArt stock={pairedStock} size="badge" /> ${pairedStock.symbol}</dd></div>
-              <div><dt>Opens at</dt><dd>${marketCap.toLocaleString()} MC</dd></div>
+              <div><dt>First buy</dt><dd>${firstBuy.toLocaleString()} <small>DEPLOYER</small></dd></div>
               <div><dt>Trade fee</dt><dd>1.00%</dd></div>
               <div><dt>Liquidity</dt><dd className="is-lime">Locked on launch</dd></div>
             </dl>
@@ -337,6 +343,53 @@ function TokenLaunchModal({ open, onClose, initialStock }) {
             <button className="launch-preview__submit" type="submit" form="token-launch-form"><Icon name="bolt" /> {submitted ? 'Preview updated' : 'Create launch preview'}</button>
           </aside>
         </div>
+      </section>
+    </div>
+  )
+}
+
+function StockBrowserModal({ open, onClose, onSelect }) {
+  const [query, setQuery] = useState('')
+
+  useEffect(() => {
+    if (!open) return
+    setQuery('')
+    const closeOnEscape = (event) => event.key === 'Escape' && onClose()
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [open, onClose])
+
+  const visibleStocks = useMemo(() => {
+    const normalized = query.trim().toLowerCase()
+    return STOCKS.filter((stock) => !normalized || stock.symbol.toLowerCase().includes(normalized) || stock.name.toLowerCase().includes(normalized))
+  }, [query])
+
+  if (!open) return null
+
+  return (
+    <div className="stock-browser-backdrop" onMouseDown={onClose}>
+      <section className="stock-browser" role="dialog" aria-modal="true" aria-labelledby="stock-browser-title" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="stock-browser__topbar">
+          <div><span>12 STOCKS / YAHOO SNAPSHOT</span><h2 id="stock-browser-title">Choose your penny-stock pair</h2><p>Pick the stock that will quote your meme launch.</p></div>
+          <button type="button" className="icon-button" onClick={onClose} aria-label="Close penny stock browser"><Icon name="close" /></button>
+        </div>
+        <label className="stock-browser__search">
+          <Icon name="search" size={20} />
+          <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search ticker or company" />
+          <span>{visibleStocks.length} found</span>
+        </label>
+        <div className="stock-browser__grid">
+          {visibleStocks.map((stock) => (
+            <button type="button" className="stock-browser-card" key={stock.symbol} onClick={() => onSelect(stock)}>
+              <div className="stock-browser-card__top"><StockArt stock={stock} size="browser" /><span><strong>{stock.symbol}</strong><em>{stock.name}</em></span><Icon name="arrow" size={18} /></div>
+              <div className="stock-browser-card__price"><strong>${stock.price < .01 ? stock.price.toFixed(3) : stock.price.toFixed(2)}</strong><span>+{stock.change.toFixed(2)}%</span></div>
+              <div className="stock-browser-card__metrics"><span>VOLUME<strong>{stock.volume}</strong></span><span>MARKET CAP<strong>{stock.cap}</strong></span></div>
+              <div className="stock-browser-card__action">Pair meme with ${stock.symbol}</div>
+            </button>
+          ))}
+          {!visibleStocks.length && <div className="stock-browser__empty">No penny stocks match “{query}”.</div>}
+        </div>
+        <div className="stock-browser__foot"><i /> Market snapshot from Yahoo Finance · prices may be delayed</div>
       </section>
     </div>
   )
@@ -404,6 +457,7 @@ export default function App() {
   const [launchState, setLaunchState] = useState('idle')
   const [mobileRail, setMobileRail] = useState(false)
   const [tokenModalOpen, setTokenModalOpen] = useState(false)
+  const [stockBrowserOpen, setStockBrowserOpen] = useState(false)
   const [launchStock, setLaunchStock] = useState(STOCKS[0])
 
   const activeStock = STOCKS.find((stock) => stock.symbol === selected) || STOCKS[0]
@@ -437,7 +491,7 @@ export default function App() {
   }
 
   const openStockPicker = () => {
-    document.querySelector('#launches')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    setStockBrowserOpen(true)
   }
 
   const fastLaunch = () => {
@@ -447,6 +501,12 @@ export default function App() {
   const openTokenLaunch = (stock = activeStock) => {
     setLaunchStock(stock)
     setTokenModalOpen(true)
+  }
+
+  const chooseStock = (stock) => {
+    setSelected(stock.symbol)
+    setStockBrowserOpen(false)
+    openTokenLaunch(stock)
   }
 
   const handleLaunch = () => {
@@ -681,6 +741,7 @@ export default function App() {
       </footer>
 
       <ReviewDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} pair={pair} allocation={allocation} mode={mode} budget={budget} onLaunch={handleLaunch} launchState={launchState} />
+      <StockBrowserModal open={stockBrowserOpen} onClose={() => setStockBrowserOpen(false)} onSelect={chooseStock} />
       <TokenLaunchModal open={tokenModalOpen} onClose={() => setTokenModalOpen(false)} initialStock={launchStock} />
     </main>
   )
