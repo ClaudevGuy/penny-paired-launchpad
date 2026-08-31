@@ -15,6 +15,21 @@ const STOCKS = [
   { symbol: 'LGPS', name: 'LogProstyle Inc.', price: 1.23, change: 16.04, volume: '32.2M', volRatio: 9.3, cap: '29.0M', spark: [10, 9, 12, 11, 15, 14, 16, 19, 18, 22, 24, 29] },
 ]
 
+const TOP_PAIR_DATA = [
+  { symbol: 'PASW', launched: 59, liquidity: '$5.66M' },
+  { symbol: 'RDHL', launched: 21, liquidity: '$1.87M' },
+  { symbol: 'FUNR', launched: 16, liquidity: '$942K' },
+  { symbol: 'GPRO', launched: 8, liquidity: '$621K' },
+  { symbol: 'CLGN', launched: 5, liquidity: '$388K' },
+]
+
+const TRENDING_LAUNCHES = [
+  { name: 'Penny Pons', ticker: 'PONNY', paired: 'PASW', mc: '$65.6K', liq: '$32K', vol: '$2.12M', age: '23m', colors: ['#d7ff53', '#17340c', '#f7ffd9'] },
+  { name: 'Red Pill Bio', ticker: 'RPILL', paired: 'RDHL', mc: '$18.4K', liq: '$12.8K', vol: '$448K', age: '41m', colors: ['#ff6780', '#3d101d', '#ffd3d9'] },
+  { name: 'Fun Runner', ticker: 'RUNR', paired: 'FUNR', mc: '$9.8K', liq: '$8.1K', vol: '$294K', age: '1h', colors: ['#ffad5b', '#41220c', '#fff0cf'] },
+  { name: 'Bag Cam', ticker: 'BAG', paired: 'GPRO', mc: '$27.2K', liq: '$19.5K', vol: '$181K', age: '2h', colors: ['#77d4ff', '#102c3e', '#d8f5ff'] },
+]
+
 const MODES = [
   { id: 'momentum', label: 'Full send', sub: 'Ride both bags up', icon: '↗' },
   { id: 'shield', label: 'Hedge the chaos', sub: 'Give one bag a helmet', icon: '◈' },
@@ -120,6 +135,37 @@ function StockArt({ stock, size = 'row' }) {
   return <span className={`stock-art stock-art--${size}`}><img src={src} alt={`${stock.name} market artwork`} /></span>
 }
 
+function TokenArtwork({ launch, size = 'card' }) {
+  const [primary, deep, light] = launch.colors || ['#d7ff53', '#17340c', '#efffc0']
+  const monogram = (launch.ticker || 'NEW').slice(0, 3)
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 520">
+      <defs>
+        <radialGradient id="bg" cx="50%" cy="52%" r="68%"><stop offset="0" stop-color="${deep}"/><stop offset="1" stop-color="#070807"/></radialGradient>
+        <radialGradient id="orb" cx="32%" cy="25%" r="70%"><stop offset="0" stop-color="${light}"/><stop offset=".48" stop-color="${primary}"/><stop offset="1" stop-color="${deep}"/></radialGradient>
+        <filter id="blur"><feGaussianBlur stdDeviation="28"/></filter>
+        <filter id="glow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <pattern id="grid" width="42" height="42" patternUnits="userSpaceOnUse"><path d="M42 0H0V42" fill="none" stroke="${primary}" stroke-opacity=".08"/></pattern>
+      </defs>
+      <rect width="640" height="520" fill="url(#bg)"/>
+      <rect width="640" height="520" fill="url(#grid)"/>
+      <ellipse cx="320" cy="400" rx="230" ry="72" fill="${primary}" opacity=".18" filter="url(#blur)"/>
+      <g opacity=".5" stroke="${primary}" fill="none"><ellipse cx="320" cy="270" rx="230" ry="92"/><ellipse cx="320" cy="270" rx="165" ry="165" transform="rotate(-18 320 270)"/><path d="M62 344C170 215 422 182 577 300"/></g>
+      <g filter="url(#glow)"><circle cx="320" cy="258" r="104" fill="url(#orb)" stroke="${light}" stroke-width="3"/><circle cx="320" cy="258" r="82" fill="none" stroke="${deep}" stroke-opacity=".55" stroke-width="3"/></g>
+      <text x="320" y="279" text-anchor="middle" fill="#0b0d09" font-family="Arial Black,Arial" font-size="58" font-weight="900" letter-spacing="-4">${monogram}</text>
+      <g fill="${primary}"><circle cx="105" cy="183" r="5"/><circle cx="526" cy="136" r="4"/><circle cx="557" cy="372" r="6"/><circle cx="170" cy="421" r="4"/></g>
+      <text x="28" y="48" fill="${light}" fill-opacity=".68" font-family="monospace" font-size="15">PENNY FACTORY // ${launch.paired || 'PAIR'}</text>
+    </svg>`
+  const src = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`
+  const pairedStock = STOCKS.find((stock) => stock.symbol === launch.paired) || STOCKS[0]
+  return (
+    <span className={`token-art token-art--${size}`}>
+      <img src={src} alt={`${launch.name || 'New token'} launch artwork`} />
+      {size === 'card' && <span className="token-art__pair"><StockArt stock={pairedStock} size="badge" /> ${pairedStock.symbol}</span>}
+    </span>
+  )
+}
+
 function Sparkline({ values, id, large = false }) {
   const width = large ? 280 : 96
   const height = large ? 88 : 32
@@ -176,6 +222,112 @@ function PairNode({ stock, leg, weight, active, onClick }) {
       <span className="pair-node__change">+{stock.change.toFixed(2)}%</span>
       <span className="pair-node__weight">{weight}%</span>
     </button>
+  )
+}
+
+function TokenLaunchModal({ open, onClose, initialStock }) {
+  const [name, setName] = useState('')
+  const [ticker, setTicker] = useState('')
+  const [description, setDescription] = useState('')
+  const [xProfile, setXProfile] = useState('')
+  const [telegram, setTelegram] = useState('')
+  const [pairSymbol, setPairSymbol] = useState(initialStock?.symbol || STOCKS[0].symbol)
+  const [marketCap, setMarketCap] = useState(25000)
+  const [imagePreview, setImagePreview] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    setPairSymbol(initialStock?.symbol || STOCKS[0].symbol)
+    setSubmitted(false)
+    const closeOnEscape = (event) => event.key === 'Escape' && onClose()
+    window.addEventListener('keydown', closeOnEscape)
+    return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [open, initialStock])
+
+  if (!open) return null
+
+  const pairedStock = STOCKS.find((stock) => stock.symbol === pairSymbol) || STOCKS[0]
+  const previewLaunch = { name: name || 'Your token', ticker: ticker || 'NEW', paired: pairedStock.symbol, colors: ['#d7ff53', '#17340c', '#efffc0'] }
+
+  const handleImage = (event) => {
+    const file = event.target.files?.[0]
+    if (!file || !file.type.startsWith('image/') || file.size > 2 * 1024 * 1024) return
+    const reader = new FileReader()
+    reader.onload = () => setImagePreview(String(reader.result))
+    reader.readAsDataURL(file)
+  }
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    setSubmitted(true)
+  }
+
+  return (
+    <div className="token-modal-backdrop" onMouseDown={onClose}>
+      <section className="token-modal" role="dialog" aria-modal="true" aria-labelledby="token-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+        <div className="token-modal__topbar">
+          <button type="button" className="token-modal__back" onClick={onClose}>‹ Back</button>
+          <span><i /> SIMULATION MODE</span>
+          <button type="button" className="icon-button" onClick={onClose} aria-label="Close token launcher"><Icon name="close" /></button>
+        </div>
+
+        <div className="launch-route">
+          <div className="launch-route__option is-active"><span>🏭</span><div><strong>Launch on Penny Factory</strong><em>Instant preview paired with a penny stock.</em></div><b>RECOMMENDED</b></div>
+          <div className="launch-route__option"><span>⚡</span><div><strong>Fast launch</strong><em>Use the defaults and get straight to the pair.</em></div><b>QUICK</b></div>
+        </div>
+
+        <div className="token-modal__layout">
+          <form className="token-form" id="token-launch-form" onSubmit={handleSubmit}>
+            <div className="token-form__heading"><span>CREATE / PAIR / SEND</span><h2 id="token-modal-title">Launch a token</h2><p>Give it a name, add the art, then choose the penny stock that quotes the launch.</p></div>
+
+            <div className="form-grid form-grid--name">
+              <label><span>Name</span><input value={name} onChange={(event) => setName(event.target.value)} placeholder="Token name" required /></label>
+              <label><span>Ticker</span><input value={ticker} onChange={(event) => setTicker(event.target.value.toUpperCase().slice(0, 8))} placeholder="SYMBOL" required /></label>
+            </div>
+
+            <label className="form-field"><span>Description <em>{description.length}/280</em></span><textarea value={description} onChange={(event) => setDescription(event.target.value.slice(0, 280))} placeholder="What is the lore? Keep it short and unhinged." rows="4" /></label>
+
+            <div className="form-field"><span>Token image</span>
+              <label className="token-upload">
+                <span className="token-upload__preview">{imagePreview ? <img src={imagePreview} alt="Uploaded token preview" /> : <TokenArtwork launch={previewLaunch} size="upload" />}</span>
+                <span className="token-upload__copy"><strong>{imagePreview ? 'Image added' : 'Choose an image'}</strong><em>PNG, JPG, GIF or WebP · 2MB max</em><b>{imagePreview ? 'Change image' : 'Upload artwork'}</b></span>
+                <input type="file" accept="image/png,image/jpeg,image/gif,image/webp" onChange={handleImage} />
+              </label>
+            </div>
+
+            <div className="form-grid">
+              <label><span>X profile</span><input value={xProfile} onChange={(event) => setXProfile(event.target.value)} placeholder="x.com/handle" /></label>
+              <label><span>Telegram</span><input value={telegram} onChange={(event) => setTelegram(event.target.value)} placeholder="t.me/community" /></label>
+            </div>
+
+            <div className="paired-asset-picker">
+              <div className="paired-asset-picker__heading"><div><strong>Paired penny stock</strong><span>Your token launches against this stock instead of ETH.</span></div><b>QUOTES YOUR TOKEN</b></div>
+              <div className="paired-asset-picker__search"><Icon name="search" size={17} /><span>Choose from the Yahoo penny-stock feed</span><em>{STOCKS.length} available</em></div>
+              <div className="paired-asset-list">
+                {STOCKS.slice(0, 8).map((stock) => <button type="button" key={stock.symbol} className={pairSymbol === stock.symbol ? 'is-active' : ''} onClick={() => setPairSymbol(stock.symbol)}><StockArt stock={stock} size="picker" /><span><strong>{stock.name} <em>${stock.symbol}</em></strong><small>{stock.volume} volume · +{stock.change.toFixed(2)}%</small></span>{pairSymbol === stock.symbol && <Icon name="check" size={17} />}</button>)}
+              </div>
+            </div>
+
+            <div className="market-cap-field"><div><span>Starting market cap</span><strong>${marketCap.toLocaleString()}</strong></div><input type="range" min="5000" max="100000" step="1000" value={marketCap} onChange={(event) => setMarketCap(Number(event.target.value))} /><div><em>$5K</em><em>$100K</em></div></div>
+          </form>
+
+          <aside className="launch-preview">
+            <div className="launch-preview__art">{imagePreview ? <img src={imagePreview} alt="Token launch artwork preview" /> : <TokenArtwork launch={previewLaunch} size="preview" />}</div>
+            <div className="launch-preview__title"><span>YOUR LAUNCH</span><h3>{name || 'Your token'}</h3><strong>${ticker || 'TICKER'}</strong></div>
+            <dl>
+              <div><dt>Paired with</dt><dd><StockArt stock={pairedStock} size="badge" /> ${pairedStock.symbol}</dd></div>
+              <div><dt>Opens at</dt><dd>${marketCap.toLocaleString()} MC</dd></div>
+              <div><dt>Trade fee</dt><dd>1.00%</dd></div>
+              <div><dt>Liquidity</dt><dd className="is-lime">Locked on launch</dd></div>
+            </dl>
+            <div className="launch-preview__note">This is a front-end preview. No token, pool, or financial transaction is created yet.</div>
+            {submitted && <div className="launch-ready"><Icon name="check" /><span><strong>Launch preview ready</strong><em>Wallet and contract wiring comes next.</em></span></div>}
+            <button className="launch-preview__submit" type="submit" form="token-launch-form"><Icon name="bolt" /> {submitted ? 'Preview updated' : 'Create launch preview'}</button>
+          </aside>
+        </div>
+      </section>
+    </div>
   )
 }
 
@@ -240,6 +392,8 @@ export default function App() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [launchState, setLaunchState] = useState('idle')
   const [mobileRail, setMobileRail] = useState(false)
+  const [tokenModalOpen, setTokenModalOpen] = useState(false)
+  const [launchStock, setLaunchStock] = useState(STOCKS[0])
 
   const activeStock = STOCKS.find((stock) => stock.symbol === selected) || STOCKS[0]
   const mode = MODES.find((item) => item.id === modeId)
@@ -283,6 +437,11 @@ export default function App() {
     setAllocation(50)
     setModeId('momentum')
     document.querySelector('#launchpad')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  const openTokenLaunch = (stock = activeStock) => {
+    setLaunchStock(stock)
+    setTokenModalOpen(true)
   }
 
   const handleLaunch = () => {
@@ -330,9 +489,9 @@ export default function App() {
           <span><strong>PENNY</strong><em>PAIRED</em></span>
         </a>
         <nav className="main-nav" aria-label="Primary navigation">
-          <a className="is-active" href="#launchpad">Explore</a>
-          <a href="#launchpad">Create pair</a>
-          <a href="#launchpad" onClick={fastLaunch}>Fast launch</a>
+          <a className="is-active" href="#launches">Explore</a>
+          <button type="button" onClick={() => openTokenLaunch(activeStock)}>Create token</button>
+          <button type="button" onClick={fastLaunch}>Fast launch</button>
         </nav>
         <div className="topbar__actions">
           <span className="chain-pill"><i /> RH CHAIN <b>PREVIEW</b></span>
@@ -364,10 +523,51 @@ export default function App() {
               <strong>{STOCKS.length} hot penny stocks available</strong>
               <Icon name="arrow" size={18} />
             </button>
+            <button className="hero-launcher__create" onClick={() => openTokenLaunch(activeStock)}>
+              <span>＋</span><div><strong>Create a new token</strong><em>Pair it with any penny stock</em></div><Icon name="arrow" size={19} />
+            </button>
           </div>
           <div className="hero-alternative">or <button onClick={openStockPicker}>explore what is already launching</button></div>
           <button className="fast-launch-chip" onClick={fastLaunch}><span>⚡</span> Fast launch — pair the hottest movers</button>
         </div>
+      </section>
+
+      <section className="launch-market" id="launches">
+        <section className="top-pairs-section">
+          <div className="market-section-heading"><div><span>QUOTE STOCKS</span><h2>Top penny-stock pairs</h2></div><p>Stocks being used as the quote side of launches right now.</p></div>
+          <div className="top-pairs-grid">
+            {TOP_PAIR_DATA.map((pair, index) => {
+              const stock = STOCKS.find((item) => item.symbol === pair.symbol) || STOCKS[index]
+              return <button className={`top-pair-card ${index === 2 ? 'is-featured' : ''}`} key={pair.symbol} onClick={() => openTokenLaunch(stock)}>
+                <div className="top-pair-card__identity"><StockArt stock={stock} size="market" /><span><strong>{stock.name}</strong><em>${stock.symbol}</em></span></div>
+                <div className="top-pair-card__stats"><span>Tokens launched on top<strong>{pair.launched}</strong></span><span>Paired liquidity<strong>{pair.liquidity}</strong></span></div>
+                <div className="top-pair-card__cta">Launch on ${stock.symbol} <Icon name="arrow" size={15} /></div>
+              </button>
+            })}
+          </div>
+          <div className="market-section-note">Preview data only · contract-backed launches arrive with the Robinhood Chain integration.</div>
+        </section>
+
+        <section className="trending-launches-section">
+          <div className="market-section-heading market-section-heading--inline"><div><span>HOT RIGHT NOW</span><h2>Trending launches</h2></div><p>Most traded launch previews in the last 24h.</p><button onClick={openStockPicker}>View all →</button></div>
+          <div className="trending-grid">
+            {TRENDING_LAUNCHES.map((launch) => {
+              const stock = STOCKS.find((item) => item.symbol === launch.paired) || STOCKS[0]
+              return <article className="launch-card" key={launch.ticker}>
+                <TokenArtwork launch={launch} />
+                <div className="launch-card__title"><span><strong>{launch.name}</strong><em>${launch.ticker}</em></span><button onClick={() => openTokenLaunch(stock)}>Launch on top</button></div>
+                <div className="launch-card__metrics"><span><strong>{launch.mc}</strong><em>MC</em></span><span><strong>{launch.liq}</strong><em>LIQ</em></span><span><strong>{launch.vol}</strong><em>VOL 24H</em></span></div>
+                <div className="launch-card__footer"><span>Paired with ${launch.paired}</span><em>{launch.age} ago</em></div>
+              </article>
+            })}
+          </div>
+        </section>
+      </section>
+
+      <section className="builder-intro">
+        <span>PAIR BUILDER</span>
+        <h2>Pick two bags. Tune the split.</h2>
+        <p>Explore the penny-stock feed, load two legs, and preview the pair before anything touches a wallet.</p>
       </section>
 
       <section className="launch-layout" id="launchpad">
@@ -476,6 +676,7 @@ export default function App() {
       </footer>
 
       <ReviewDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} pair={pair} allocation={allocation} mode={mode} budget={budget} onLaunch={handleLaunch} launchState={launchState} />
+      <TokenLaunchModal open={tokenModalOpen} onClose={() => setTokenModalOpen(false)} initialStock={launchStock} />
     </main>
   )
 }
