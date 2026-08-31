@@ -1,12 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&family=Syne:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
   --ink: #080a08;
   --ink-soft: #10130f;
   --panel: rgba(16, 19, 15, .88);
   --panel-strong: #131711;
-  --lime: #c8ff35;
-  --lime-hot: #e4ff8d;
+  --lime: #d7ff53;
+  --lime-hot: #ecffad;
   --lime-dark: #759a12;
   --ice: #f0f6e8;
   --muted: #899084;
@@ -15,7 +15,7 @@
   --violet: #9d7bff;
   --orange: #ff9f43;
   --font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --display: 'Syne', 'Inter', system-ui, sans-serif;
+  --display: 'Inter', system-ui, sans-serif;
   --mono: 'DM Mono', 'Cascadia Code', monospace;
 }
 
@@ -485,6 +485,44 @@ body { font-size: 17px; }
 .risk-note p { font-size: 10px; }
 .launch-button { height: 64px; border-radius: 17px; font-size: 13px; }
 
+/* Pons Factory-inspired degen pass. */
+.app-shell { background: radial-gradient(circle at 50% 26%, rgba(134, 179, 12, .09), transparent 25%), #0d0d0d; }
+.topbar { background: rgba(13,13,13,.9); }
+.brand__sigil { border-radius: 8px; }
+.main-nav, .chain-pill { background: #161616; }
+.hero { min-height: 650px; align-items: center; justify-content: center; padding-block: 78px 70px; background: radial-gradient(circle at 50% 48%, rgba(167, 224, 16, .1), transparent 31%), #0f100f; text-align: center; }
+.hero::after { display: none; }
+.hero__copy { width: min(1050px, 100%); display: flex; flex-direction: column; align-items: center; }
+.hero h1 { max-width: 1050px; margin: 28px auto 0; color: #f2f2f2; font-size: clamp(58px, 5.2vw, 88px); font-weight: 800; line-height: .98; letter-spacing: -.06em; }
+.hero h1 span { color: #f2f2f2; text-shadow: 0 0 42px rgba(215,255,83,.12); }
+.hero-launcher { position: relative; width: min(600px, 100%); margin-top: 40px; padding: 28px; border: 1px solid rgba(215,255,83,.24); border-radius: 26px; background: rgba(22,22,22,.88); box-shadow: 0 0 0 1px rgba(255,255,255,.025), 0 0 90px rgba(152,207,12,.24); text-align: left; }
+.hero-launcher::before { content: ''; position: absolute; z-index: -1; inset: 16% 8% -14%; border-radius: 50%; background: rgba(178,235,24,.25); filter: blur(55px); }
+.hero-launcher::after { content: 'DEGEN MODE'; position: absolute; right: -28px; top: -18px; padding: 9px 14px; border-radius: 999px; background: var(--lime); color: #101010; font: 800 10px/1 var(--mono); letter-spacing: .06em; transform: rotate(6deg); box-shadow: 0 8px 30px rgba(0,0,0,.35); }
+.hero-launcher__label { display: flex; align-items: center; gap: 10px; color: #f2f2f2; font-size: 15px; font-weight: 700; }
+.hero-launcher__label i { width: 7px; height: 7px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 13px var(--lime); }
+.hero-launcher__search, .hero-launcher__available { width: 100%; display: flex; align-items: center; border: 1px solid rgba(255,255,255,.07); background: #1d1d1d; color: rgba(255,255,255,.72); cursor: pointer; transition: .2s; }
+.hero-launcher__search { height: 58px; gap: 12px; margin-top: 18px; padding: 0 16px; border-radius: 15px; font-size: 15px; text-align: left; }
+.hero-launcher__search span { flex: 1; }
+.hero-launcher__search em { padding: 8px 10px; border-radius: 999px; background: #242424; color: rgba(255,255,255,.75); font-size: 12px; font-style: normal; font-weight: 700; }
+.hero-launcher__available { height: 54px; gap: 13px; margin-top: 13px; padding: 0 14px; border-radius: 15px; font-size: 14px; }
+.hero-launcher__available strong { flex: 1; font-weight: 600; }
+.hero-launcher__search:hover, .hero-launcher__available:hover { border-color: rgba(215,255,83,.42); background: #20211d; transform: translateY(-1px); }
+.hero-launcher__stack { display: flex; align-items: center; padding-left: 8px; }
+.stock-art--mini { width: 34px; height: 34px; margin-left: -8px; border: 2px solid #1d1d1d; border-radius: 50%; }
+.stock-art--mini:first-child { margin-left: 0; }
+.hero-alternative { display: flex; gap: 4px; margin-top: 24px; color: rgba(255,255,255,.35); font-size: 13px; }
+.hero-alternative button { padding: 0; border: 0; background: transparent; color: rgba(255,255,255,.68); font-weight: 600; cursor: pointer; }
+.hero-alternative button:hover { color: var(--lime); }
+.fast-launch-chip { height: 44px; display: flex; align-items: center; gap: 8px; margin-top: 26px; padding: 0 18px; border: 1px solid rgba(255,255,255,.08); border-radius: 999px; background: #161616; color: rgba(255,255,255,.72); font-size: 13px; font-weight: 600; cursor: pointer; }
+.fast-launch-chip:hover { border-color: rgba(215,255,83,.3); color: #f2f2f2; }
+.stock-rail, .pair-console, .signal-panel, .footer { background: #161616; }
+.stock-row.is-selected { background: rgba(215,255,83,.075); }
+.panel-heading h2, .console-topline h2, .review-drawer__top h2 { letter-spacing: -.055em; }
+.console-topline h2 { font-weight: 800; }
+.stage-button, .launch-button { background: var(--lime); }
+.control-label, .eyebrow { color: rgba(255,255,255,.38); }
+.source-note { color: rgba(255,255,255,.32); }
+
 @media (max-width: 1420px) {
   .launch-layout { grid-template-columns: minmax(320px, 350px) minmax(560px, 1fr); }
   .signal-panel { display: none; }
@@ -497,7 +535,7 @@ body { font-size: 17px; }
   .topbar { grid-template-columns: 1fr auto; }
   .main-nav, .chain-pill, .market-clock { display: none; }
   .market-tape { padding-right: 0; }
-  .hero { min-height: 340px; padding: 48px 32px 42px; border-radius: 24px; }
+  .hero { min-height: 0; padding: 68px 32px 60px; border-radius: 24px; }
   .launch-layout { z-index: 19; width: calc(100% - 28px); grid-template-columns: 1fr; animation: none; }
   .pair-console { min-height: 900px; }
   .stock-rail { position: fixed; z-index: 18; inset: 0 auto 0 0; width: min(390px, calc(100% - 18px)); max-height: none; background: #0a0c09; transform: translateX(-105%); transition: .3s; box-shadow: 30px 0 100px rgba(0,0,0,.65); }
@@ -517,9 +555,16 @@ body { font-size: 17px; }
   .wallet-button span { display: none; }
   .wallet-button { width: 36px; padding: 0; justify-content: center; }
   .tape-label { padding-left: 16px; }
-  .hero { width: calc(100% - 18px); min-height: 350px; padding: 43px 20px 36px; }
+  .hero { width: calc(100% - 18px); min-height: 0; padding: 54px 18px 48px; }
   .hero h1 { font-size: clamp(45px, 14vw, 66px); }
-  .hero p { font-size: 15px; line-height: 1.55; }
+  .hero-launcher { margin-top: 31px; padding: 19px; border-radius: 21px; }
+  .hero-launcher::after { right: 10px; top: -17px; }
+  .hero-launcher__search { height: 55px; padding-inline: 13px; font-size: 13px; }
+  .hero-launcher__search em { padding: 7px 8px; font-size: 10px; }
+  .hero-launcher__available { height: 58px; gap: 9px; padding-inline: 10px; font-size: 12px; }
+  .stock-art--mini { width: 29px; height: 29px; }
+  .hero-alternative { justify-content: center; flex-wrap: wrap; }
+  .fast-launch-chip { height: auto; min-height: 44px; padding: 10px 15px; font-size: 12px; text-align: left; }
   .launch-layout { width: calc(100% - 18px); margin-bottom: 45px; }
   .pair-console { min-height: 0; padding: 24px 13px 20px; border-radius: 22px; }
   .console-topline h2 { font-size: 24px; }

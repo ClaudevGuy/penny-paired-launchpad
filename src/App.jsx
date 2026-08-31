@@ -16,9 +16,9 @@ const STOCKS = [
 ]
 
 const MODES = [
-  { id: 'momentum', label: 'Momentum split', sub: 'Ride twin velocity', icon: '↗' },
-  { id: 'shield', label: 'Shock absorber', sub: 'Counterweight volatility', icon: '◈' },
-  { id: 'volume', label: 'Volume warp', sub: 'Favor signal density', icon: '≋' },
+  { id: 'momentum', label: 'Full send', sub: 'Ride both bags up', icon: '↗' },
+  { id: 'shield', label: 'Hedge the chaos', sub: 'Give one bag a helmet', icon: '◈' },
+  { id: 'volume', label: 'Volume goblin', sub: 'Chase the loudest tape', icon: '≋' },
 ]
 
 const PENNIES = [
@@ -169,7 +169,7 @@ function StockRow({ stock, selected, paired, onSelect, onPair }) {
 function PairNode({ stock, leg, weight, active, onClick }) {
   return (
     <button className={`pair-node pair-node--${leg} ${active ? 'is-active' : ''}`} onClick={onClick}>
-      <span className="pair-node__leg">{leg === 'a' ? 'THRUST' : 'VECTOR'} / LEG {leg.toUpperCase()}</span>
+      <span className="pair-node__leg">{leg === 'a' ? 'ALPHA BAG' : 'CHAOS BAG'} / LEG {leg.toUpperCase()}</span>
       <StockArt stock={stock} size="node" />
       <span className="pair-node__symbol">{stock.symbol}</span>
       <span className="pair-node__price">${stock.price < .01 ? stock.price.toFixed(3) : stock.price.toFixed(2)}</span>
@@ -188,11 +188,11 @@ function ReviewDrawer({ open, onClose, pair, allocation, mode, budget, onLaunch,
       <aside className={`review-drawer ${open ? 'is-open' : ''}`} aria-hidden={!open}>
         <div className="drawer-handle" />
         <div className="review-drawer__top">
-          <div><span className="eyebrow">PRE-FLIGHT SEQUENCE</span><h2>Stage the pair</h2></div>
+          <div><span className="eyebrow">ONE LAST VIBE CHECK</span><h2>Send the pair</h2></div>
           <button className="icon-button" onClick={onClose} aria-label="Close review"><Icon name="close" /></button>
         </div>
 
-        <div className="flight-code"><span>PAIR HASH</span><strong>{pair[0].symbol} // {pair[1].symbol}</strong><em>0x7F...29C</em></div>
+        <div className="flight-code"><span>YOUR TWO-BAG COOK</span><strong>{pair[0].symbol} // {pair[1].symbol}</strong><em>pair intent 0x7F...29C</em></div>
 
         <div className="review-legs">
           {[pair[0], pair[1]].map((stock, index) => {
@@ -207,7 +207,7 @@ function ReviewDrawer({ open, onClose, pair, allocation, mode, budget, onLaunch,
         </div>
 
         <dl className="review-specs">
-          <div><dt>Pair logic</dt><dd>{mode.label}</dd></div>
+          <div><dt>Launch mode</dt><dd>{mode.label}</dd></div>
           <div><dt>Est. chain fee</dt><dd>0.0008 ETH</dd></div>
           <div><dt>Slippage guard</dt><dd>2.50%</dd></div>
           <div><dt>Network</dt><dd><span className="status-dot" /> RH Chain / Preview</dd></div>
@@ -217,9 +217,9 @@ function ReviewDrawer({ open, onClose, pair, allocation, mode, budget, onLaunch,
 
         <button className={`launch-button ${launchState !== 'idle' ? 'is-launching' : ''}`} onClick={onLaunch} disabled={launchState !== 'idle'}>
           <span className="launch-button__flare" />
-          {launchState === 'idle' && <><Icon name="bolt" /> Ignite pair</>}
-          {launchState === 'signing' && <>SIGNING PAIR...</>}
-          {launchState === 'launched' && <><Icon name="check" /> Pair launched</>}
+          {launchState === 'idle' && <><Icon name="bolt" /> Full send</>}
+          {launchState === 'signing' && <>COOKING THE PAIR...</>}
+          {launchState === 'launched' && <><Icon name="check" /> Bags sent</>}
         </button>
         <p className="launch-caption">By launching, both legs are atomically staged as one intent.</p>
       </aside>
@@ -271,6 +271,20 @@ export default function App() {
     setActiveLeg(activeLeg === 0 ? 1 : 0)
   }
 
+  const openStockPicker = () => {
+    setMobileRail(true)
+    document.querySelector('#launchpad')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    window.setTimeout(() => document.querySelector('.search-control input')?.focus(), 450)
+  }
+
+  const fastLaunch = () => {
+    setPair([STOCKS[2], STOCKS[3]])
+    setSelected(STOCKS[2].symbol)
+    setAllocation(50)
+    setModeId('momentum')
+    document.querySelector('#launchpad')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   const handleLaunch = () => {
     setLaunchState('signing')
     window.setTimeout(() => setLaunchState('launched'), 1600)
@@ -316,9 +330,9 @@ export default function App() {
           <span><strong>PENNY</strong><em>PAIRED</em></span>
         </a>
         <nav className="main-nav" aria-label="Primary navigation">
-          <a className="is-active" href="#launchpad">Launchpad</a>
-          <a href="#signals">Signal lab</a>
-          <a href="#vault">Pair vault</a>
+          <a className="is-active" href="#launchpad">Explore</a>
+          <a href="#launchpad">Create pair</a>
+          <a href="#launchpad" onClick={fastLaunch}>Fast launch</a>
         </nav>
         <div className="topbar__actions">
           <span className="chain-pill"><i /> RH CHAIN <b>PREVIEW</b></span>
@@ -327,29 +341,39 @@ export default function App() {
       </header>
 
       <section className="market-tape" aria-label="Market pulse">
-        <span className="tape-label">LIVE SIGNAL</span>
+        <span className="tape-label">DEGEN FEED</span>
         <div className="tape-track">
           {[...STOCKS.slice(0, 8), ...STOCKS.slice(0, 4)].map((stock, index) => <span key={`${stock.symbol}-${index}`}><b>{stock.symbol}</b> <em>+{stock.change.toFixed(2)}%</em> <i>{stock.volume}</i></span>)}
         </div>
-        <span className="market-clock">MARKET OPEN <b>02:33:19</b></span>
+        <span className="market-clock">PENNIES ARE COOKING <b>02:33:19</b></span>
       </section>
 
       <section className="hero" id="top">
         <div className="hero__copy">
-          <span className="eyebrow"><i /> YAHOO FINANCE // MOST ACTIVE PENNY STOCKS</span>
-          <h1>Pair the chaos.<br/><span>Launch the spread.</span></h1>
-          <p>A high-voltage launch console for discovering two-stock penny plays and staging them as a single on-chain intent.</p>
-        </div>
-        <div className="hero__telemetry">
-          <div className="telemetry-radar"><span>92</span><small>HEAT<br/>INDEX</small><i /><i /><i /></div>
-          <div className="telemetry-copy"><span>SCANNER STATUS</span><strong>75 targets acquired</strong><em>Snapshot synced 00:00 UTC</em></div>
+          <span className="eyebrow"><i /> PENNY FACTORY / RH CHAIN PREVIEW</span>
+          <h1>Launch with any <span>penny stock</span></h1>
+          <div className="hero-launcher">
+            <div className="hero-launcher__label"><i /> Choose your first penny stock</div>
+            <button className="hero-launcher__search" onClick={openStockPicker}>
+              <Icon name="search" size={19} />
+              <span>Paste a ticker, or search</span>
+              <em>Browse⌄</em>
+            </button>
+            <button className="hero-launcher__available" onClick={openStockPicker}>
+              <span className="hero-launcher__stack">{STOCKS.slice(0, 5).map((stock) => <StockArt stock={stock} size="mini" key={stock.symbol} />)}</span>
+              <strong>{STOCKS.length} hot penny stocks available</strong>
+              <Icon name="arrow" size={18} />
+            </button>
+          </div>
+          <div className="hero-alternative">or <button onClick={openStockPicker}>explore what is already launching</button></div>
+          <button className="fast-launch-chip" onClick={fastLaunch}><span>⚡</span> Fast launch — pair the hottest movers</button>
         </div>
       </section>
 
       <section className="launch-layout" id="launchpad">
         <aside className={`stock-rail ${mobileRail ? 'is-mobile-open' : ''}`}>
           <div className="panel-heading">
-            <div><span className="eyebrow">01 / TARGET RAIL</span><h2>Live fire</h2></div>
+            <div><span className="eyebrow">01 / PICK A BAG</span><h2>Hot penny stocks</h2></div>
             <button className="rail-close" onClick={() => setMobileRail(false)} aria-label="Close target rail"><Icon name="close" /></button>
             <span className="target-count">{filteredStocks.length}</span>
           </div>
@@ -371,7 +395,7 @@ export default function App() {
 
         <section className="pair-console">
           <div className="console-topline">
-            <div><span className="eyebrow">02 / PAIRING CORE</span><h2>Atomic intent builder</h2></div>
+            <div><span className="eyebrow">02 / COOK THE PAIR</span><h2>Pair it. Send it.</h2></div>
             <button className="mobile-targets" onClick={() => setMobileRail(true)}>Select targets <span>{filteredStocks.length}</span></button>
             <div className="core-status"><span>CORE TEMP</span><strong>{score}°</strong><i><b style={{width: `${score}%`}} /></i></div>
           </div>
@@ -389,8 +413,8 @@ export default function App() {
 
           <div className="allocation-deck">
             <div className="allocation-heading">
-              <div><span>PAIR WEIGHT</span><strong>{pair[0].symbol} <em>{allocation}%</em></strong></div>
-              <div><strong><em>{100 - allocation}%</em> {pair[1].symbol}</strong><span>CAPITAL VECTOR</span></div>
+              <div><span>BAG SPLIT</span><strong>{pair[0].symbol} <em>{allocation}%</em></strong></div>
+              <div><strong><em>{100 - allocation}%</em> {pair[1].symbol}</strong><span>OTHER BAG</span></div>
             </div>
             <div className="range-wrap">
               <input type="range" min="10" max="90" value={allocation} onChange={(event) => setAllocation(Number(event.target.value))} style={{'--allocation': `${allocation}%`}} aria-label="Pair allocation" />
@@ -400,11 +424,11 @@ export default function App() {
 
           <div className="console-controls">
             <div className="mode-picker">
-              <span className="control-label">PAIR LOGIC</span>
+              <span className="control-label">DEGEN MODE</span>
               <div className="mode-options">{MODES.map((item) => <button key={item.id} className={modeId === item.id ? 'is-active' : ''} onClick={() => setModeId(item.id)}><i>{item.icon}</i><span><strong>{item.label}</strong><em>{item.sub}</em></span><b /></button>)}</div>
             </div>
             <div className="budget-control">
-              <span className="control-label">MISSION BUDGET</span>
+              <span className="control-label">HOW MUCH ARE WE COOKING?</span>
               <div className="budget-input"><span>$</span><input type="number" min="10" max="100000" value={budget} onChange={(event) => setBudget(Math.max(0, Number(event.target.value)))} /><em>USD</em></div>
               <div className="quick-budgets">{[100,250,500,1000].map(amount => <button key={amount} className={budget === amount ? 'is-active' : ''} onClick={() => setBudget(amount)}>${amount >= 1000 ? '1K' : amount}</button>)}</div>
             </div>
@@ -413,15 +437,15 @@ export default function App() {
           <div className="console-footer">
             <div className="pair-signal">
               <span className="signal-orb"><i /></span>
-              <span><small>COMPOSITE SIGNAL</small><strong>{score > 80 ? 'EXTREME VELOCITY' : score > 65 ? 'HIGH VELOCITY' : 'ACTIVE'}</strong></span>
+              <span><small>DEGEN SCORE</small><strong>{score > 80 ? 'ABSOLUTELY UNHINGED' : score > 65 ? 'HIGH CONVICTION' : 'WARMING UP'}</strong></span>
               <em>{score}/100</em>
             </div>
-            <button className="stage-button" onClick={() => setDrawerOpen(true)}><span>Stage pair</span><Icon name="arrow" /><i /></button>
+            <button className="stage-button" onClick={() => setDrawerOpen(true)}><span>Cook this pair</span><Icon name="arrow" /><i /></button>
           </div>
         </section>
 
         <aside className="signal-panel" id="signals">
-          <div className="panel-heading panel-heading--compact"><div className="signal-panel__identity"><StockArt stock={activeStock} size="signal" /><div><span className="eyebrow">03 / SIGNAL LENS</span><h2>{activeStock.symbol}</h2></div></div><span className="live-badge">LIVE</span></div>
+          <div className="panel-heading panel-heading--compact"><div className="signal-panel__identity"><StockArt stock={activeStock} size="signal" /><div><span className="eyebrow">03 / VIBE CHECK</span><h2>{activeStock.symbol}</h2></div></div><span className="live-badge">HOT</span></div>
           <div className="signal-price"><div><strong>${activeStock.price < .01 ? activeStock.price.toFixed(3) : activeStock.price.toFixed(2)}</strong><span>+{activeStock.change.toFixed(2)}%</span></div><small>{activeStock.name}</small></div>
           <div className="signal-chart">
             <div className="chart-grid" />
@@ -442,7 +466,7 @@ export default function App() {
               <g className="radar-labels"><text x="100" y="10">VELOCITY</text><text x="178" y="78">VOLUME</text><text x="100" y="148">RISK</text><text x="2" y="78">LIQUIDITY</text></g>
             </svg>
           </div>
-          <button className="load-target" onClick={() => addToPair(activeStock)}><span>Load into leg {activeLeg === 0 ? 'A' : 'B'}</span><strong>+</strong></button>
+          <button className="load-target" onClick={() => addToPair(activeStock)}><span>Add to bag {activeLeg === 0 ? 'A' : 'B'}</span><strong>+</strong></button>
         </aside>
       </section>
 
