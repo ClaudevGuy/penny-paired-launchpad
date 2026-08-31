@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 const STOCKS = [
-  { symbol: 'PASW', name: 'Ping An Biomedical', price: 0.16, change: 19.26, volume: '336.5M', volRatio: 484.6, cap: '19.7M', spark: [10, 12, 11, 17, 16, 25, 23, 38, 35, 55, 48, 73] },
-  { symbol: 'CLGN', name: 'CollPlant Biotechnologies', price: 0.43, change: 19.41, volume: '172.0M', volRatio: 847.2, cap: '8.1M', spark: [12, 9, 14, 13, 22, 18, 26, 31, 28, 41, 40, 51] },
+  { symbol: 'PASW', name: 'Ping An Biomedical', logo: '/logos/PASW.png', price: 0.16, change: 19.26, volume: '336.5M', volRatio: 484.6, cap: '19.7M', spark: [10, 12, 11, 17, 16, 25, 23, 38, 35, 55, 48, 73] },
+  { symbol: 'CLGN', name: 'CollPlant Biotechnologies', logo: '/logos/CLGN.png', price: 0.43, change: 19.41, volume: '172.0M', volRatio: 847.2, cap: '8.1M', spark: [12, 9, 14, 13, 22, 18, 26, 31, 28, 41, 40, 51] },
   { symbol: 'FUNR', name: 'FUNR', price: 0.02, change: 102.0, volume: '117.8M', volRatio: 812372.4, cap: '$3', spark: [4, 5, 3, 5, 4, 6, 5, 9, 8, 17, 28, 68] },
-  { symbol: 'RDHL', name: 'RedHill Biopharma', price: 1.07, change: 61.12, volume: '95.8M', volRatio: 504.4, cap: '6.5M', spark: [8, 7, 11, 9, 14, 18, 16, 25, 22, 32, 46, 61] },
+  { symbol: 'RDHL', name: 'RedHill Biopharma', logo: '/logos/RDHL.svg', price: 1.07, change: 61.12, volume: '95.8M', volRatio: 504.4, cap: '6.5M', spark: [8, 7, 11, 9, 14, 18, 16, 25, 22, 32, 46, 61] },
   { symbol: 'BMXC', name: 'Bemax Inc.', price: 0.004, change: 33.33, volume: '91.7M', volRatio: 13.8, cap: '78.6K', spark: [9, 10, 8, 11, 10, 15, 13, 17, 16, 21, 25, 31] },
-  { symbol: 'COOT', name: 'Australian Oilseeds', price: 0.6, change: 31.4, volume: '68.1M', volRatio: 153.1, cap: '18.2M', spark: [14, 12, 10, 15, 13, 20, 18, 24, 22, 31, 29, 43] },
-  { symbol: 'SOAR', name: 'Volato Group', price: 0.24, change: 11.54, volume: '58.1M', volRatio: 1.4, cap: '13.0M', spark: [15, 17, 14, 16, 18, 17, 20, 19, 22, 24, 23, 26] },
-  { symbol: 'NCRA', name: 'Nocera Inc.', price: 2.89, change: 55.35, volume: '53.8M', volRatio: 17.9, cap: '4.5M', spark: [7, 8, 11, 10, 16, 14, 22, 20, 31, 28, 43, 57] },
-  { symbol: 'FLZH', name: 'Flash Sports & Media', price: 0.09, change: 8.28, volume: '41.7M', volRatio: 29.3, cap: '5.3M', spark: [13, 12, 14, 13, 15, 14, 16, 18, 17, 20, 19, 23] },
-  { symbol: 'GPRO', name: 'GoPro Inc.', price: 0.71, change: 18.39, volume: '41.0M', volRatio: 6.6, cap: '131M', spark: [11, 13, 12, 15, 14, 18, 17, 21, 20, 24, 27, 31] },
-  { symbol: 'WBUY', name: 'WEBUY GLOBAL', price: 0.93, change: 10.66, volume: '38.3M', volRatio: 12.3, cap: '5.1M', spark: [12, 14, 13, 15, 16, 15, 18, 17, 21, 20, 23, 25] },
-  { symbol: 'LGPS', name: 'LogProstyle Inc.', price: 1.23, change: 16.04, volume: '32.2M', volRatio: 9.3, cap: '29.0M', spark: [10, 9, 12, 11, 15, 14, 16, 19, 18, 22, 24, 29] },
+  { symbol: 'COOT', name: 'Australian Oilseeds', logo: '/logos/COOT.png', price: 0.6, change: 31.4, volume: '68.1M', volRatio: 153.1, cap: '18.2M', spark: [14, 12, 10, 15, 13, 20, 18, 24, 22, 31, 29, 43] },
+  { symbol: 'SOAR', name: 'Volato Group', logo: '/logos/SOAR.png', price: 0.24, change: 11.54, volume: '58.1M', volRatio: 1.4, cap: '13.0M', spark: [15, 17, 14, 16, 18, 17, 20, 19, 22, 24, 23, 26] },
+  { symbol: 'NCRA', name: 'Nocera Inc.', logo: '/logos/NCRA.png', price: 2.89, change: 55.35, volume: '53.8M', volRatio: 17.9, cap: '4.5M', spark: [7, 8, 11, 10, 16, 14, 22, 20, 31, 28, 43, 57] },
+  { symbol: 'FLZH', name: 'Flash Sports & Media', logo: '/logos/FLZH.png', price: 0.09, change: 8.28, volume: '41.7M', volRatio: 29.3, cap: '5.3M', spark: [13, 12, 14, 13, 15, 14, 16, 18, 17, 20, 19, 23] },
+  { symbol: 'GPRO', name: 'GoPro Inc.', logo: '/logos/GPRO.png', price: 0.71, change: 18.39, volume: '41.0M', volRatio: 6.6, cap: '131M', spark: [11, 13, 12, 15, 14, 18, 17, 21, 20, 24, 27, 31] },
+  { symbol: 'WBUY', name: 'WEBUY GLOBAL', logo: '/logos/WBUY.png', price: 0.93, change: 10.66, volume: '38.3M', volRatio: 12.3, cap: '5.1M', spark: [12, 14, 13, 15, 16, 15, 18, 17, 21, 20, 23, 25] },
+  { symbol: 'LGPS', name: 'LogProstyle Inc.', logo: '/logos/LGPS.png', price: 1.23, change: 16.04, volume: '32.2M', volRatio: 9.3, cap: '29.0M', spark: [10, 9, 12, 11, 15, 14, 16, 19, 18, 22, 24, 29] },
 ]
 
 const TOP_PAIR_DATA = [
@@ -24,7 +24,7 @@ const TOP_PAIR_DATA = [
 ]
 
 const TRENDING_LAUNCHES = [
-  { name: 'Penny Pons', ticker: 'PONNY', paired: 'PASW', mc: '$65.6K', liq: '$32K', vol: '$2.12M', age: '23m', colors: ['#d7ff53', '#17340c', '#f7ffd9'] },
+  { name: 'PennyPons', ticker: 'PONNY', paired: 'PASW', mc: '$65.6K', liq: '$32K', vol: '$2.12M', age: '23m', colors: ['#d7ff53', '#17340c', '#f7ffd9'] },
   { name: 'Red Pill Bio', ticker: 'RPILL', paired: 'RDHL', mc: '$18.4K', liq: '$12.8K', vol: '$448K', age: '41m', colors: ['#ff6780', '#3d101d', '#ffd3d9'] },
   { name: 'Fun Runner', ticker: 'RUNR', paired: 'FUNR', mc: '$9.8K', liq: '$8.1K', vol: '$294K', age: '1h', colors: ['#ffad5b', '#41220c', '#fff0cf'] },
   { name: 'Bag Cam', ticker: 'BAG', paired: 'GPRO', mc: '$27.2K', liq: '$19.5K', vol: '$181K', age: '2h', colors: ['#77d4ff', '#102c3e', '#d8f5ff'] },
@@ -109,6 +109,8 @@ const STOCK_ART_PALETTES = [
 ]
 
 function StockArt({ stock, size = 'row' }) {
+  const [logoFailed, setLogoFailed] = useState(false)
+  useEffect(() => setLogoFailed(false), [stock.symbol])
   const stockIndex = Math.max(0, STOCKS.findIndex((item) => item.symbol === stock.symbol))
   const [primary, deep, accent] = STOCK_ART_PALETTES[stockIndex % STOCK_ART_PALETTES.length]
   const initials = stock.symbol.slice(0, 2)
@@ -132,7 +134,16 @@ function StockArt({ stock, size = 'row' }) {
       <rect x="11" y="76" width="26" height="3" rx="1.5" fill="${accent}"/>
     </svg>`
   const src = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`
-  return <span className={`stock-art stock-art--${size}`}><img src={src} alt={`${stock.name} market artwork`} /></span>
+  const hasCompanyLogo = Boolean(stock.logo && !logoFailed)
+  return (
+    <span className={`stock-art stock-art--${size} stock-art--${stock.symbol.toLowerCase()} ${hasCompanyLogo ? 'is-company-logo' : 'is-ticker-art'}`}>
+      <img
+        src={hasCompanyLogo ? stock.logo : src}
+        alt={hasCompanyLogo ? `${stock.name} company logo` : `${stock.symbol} ticker mark`}
+        onError={() => setLogoFailed(true)}
+      />
+    </span>
+  )
 }
 
 function TokenArtwork({ launch, size = 'card' }) {
@@ -154,7 +165,7 @@ function TokenArtwork({ launch, size = 'card' }) {
       <g filter="url(#glow)"><circle cx="320" cy="258" r="104" fill="url(#orb)" stroke="${light}" stroke-width="3"/><circle cx="320" cy="258" r="82" fill="none" stroke="${deep}" stroke-opacity=".55" stroke-width="3"/></g>
       <text x="320" y="279" text-anchor="middle" fill="#0b0d09" font-family="Arial Black,Arial" font-size="58" font-weight="900" letter-spacing="-4">${monogram}</text>
       <g fill="${primary}"><circle cx="105" cy="183" r="5"/><circle cx="526" cy="136" r="4"/><circle cx="557" cy="372" r="6"/><circle cx="170" cy="421" r="4"/></g>
-      <text x="28" y="48" fill="${light}" fill-opacity=".68" font-family="monospace" font-size="15">PENNY FACTORY // ${launch.paired || 'PAIR'}</text>
+      <text x="28" y="48" fill="${light}" fill-opacity=".68" font-family="monospace" font-size="15">PENNYPONS // ${launch.paired || 'PAIR'}</text>
     </svg>`
   const src = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`
   const pairedStock = STOCKS.find((stock) => stock.symbol === launch.paired) || STOCKS[0]
@@ -273,13 +284,13 @@ function TokenLaunchModal({ open, onClose, initialStock }) {
         </div>
 
         <div className="launch-route">
-          <div className="launch-route__option is-active"><span>🏭</span><div><strong>Launch on Penny Factory</strong><em>Instant preview paired with a penny stock.</em></div><b>RECOMMENDED</b></div>
+          <div className="launch-route__option is-active"><span>🏭</span><div><strong>Launch on PennyPons</strong><em>Launch your meme paired with a penny stock.</em></div><b>RECOMMENDED</b></div>
           <div className="launch-route__option"><span>⚡</span><div><strong>Fast launch</strong><em>Use the defaults and get straight to the pair.</em></div><b>QUICK</b></div>
         </div>
 
         <div className="token-modal__layout">
           <form className="token-form" id="token-launch-form" onSubmit={handleSubmit}>
-            <div className="token-form__heading"><span>CREATE / PAIR / SEND</span><h2 id="token-modal-title">Launch a token</h2><p>Give it a name, add the art, then choose the penny stock that quotes the launch.</p></div>
+            <div className="token-form__heading"><span>CREATE / PAIR / SEND</span><h2 id="token-modal-title">Launch your meme</h2><p>Give it a name, add the art, then choose the penny stock that quotes the launch.</p></div>
 
             <div className="form-grid form-grid--name">
               <label><span>Name</span><input value={name} onChange={(event) => setName(event.target.value)} placeholder="Token name" required /></label>
@@ -426,17 +437,11 @@ export default function App() {
   }
 
   const openStockPicker = () => {
-    setMobileRail(true)
-    document.querySelector('#launchpad')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    window.setTimeout(() => document.querySelector('.search-control input')?.focus(), 450)
+    document.querySelector('#launches')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 
   const fastLaunch = () => {
-    setPair([STOCKS[2], STOCKS[3]])
-    setSelected(STOCKS[2].symbol)
-    setAllocation(50)
-    setModeId('momentum')
-    document.querySelector('#launchpad')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    openTokenLaunch(STOCKS[2])
   }
 
   const openTokenLaunch = (stock = activeStock) => {
@@ -484,9 +489,9 @@ export default function App() {
       <PennyField />
 
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="Penny Paired home">
+        <a className="brand" href="#top" aria-label="PennyPons home">
           <span className="brand__sigil"><i /><i /><i /></span>
-          <span><strong>PENNY</strong><em>PAIRED</em></span>
+          <span><strong>PENNY</strong><em>PONS</em></span>
         </a>
         <nav className="main-nav" aria-label="Primary navigation">
           <a className="is-active" href="#launches">Explore</a>
@@ -509,10 +514,10 @@ export default function App() {
 
       <section className="hero" id="top">
         <div className="hero__copy">
-          <span className="eyebrow"><i /> PENNY FACTORY / RH CHAIN PREVIEW</span>
-          <h1>Launch with any <span>penny stock</span></h1>
+          <span className="eyebrow"><i /> PENNYPONS / RH CHAIN PREVIEW</span>
+          <h1>Launch your meme <span>paired with penny stocks</span></h1>
           <div className="hero-launcher">
-            <div className="hero-launcher__label"><i /> Choose your first penny stock</div>
+            <div className="hero-launcher__label"><i /> Choose the penny stock that powers it</div>
             <button className="hero-launcher__search" onClick={openStockPicker}>
               <Icon name="search" size={19} />
               <span>Paste a ticker, or search</span>
@@ -524,7 +529,7 @@ export default function App() {
               <Icon name="arrow" size={18} />
             </button>
             <button className="hero-launcher__create" onClick={() => openTokenLaunch(activeStock)}>
-              <span>＋</span><div><strong>Create a new token</strong><em>Pair it with any penny stock</em></div><Icon name="arrow" size={19} />
+              <span>＋</span><div><strong>Launch your meme</strong><em>Pair it with any penny stock</em></div><Icon name="arrow" size={19} />
             </button>
           </div>
           <div className="hero-alternative">or <button onClick={openStockPicker}>explore what is already launching</button></div>
@@ -564,7 +569,7 @@ export default function App() {
         </section>
       </section>
 
-      <section className="builder-intro">
+      {false && <><section className="builder-intro">
         <span>PAIR BUILDER</span>
         <h2>Pick two bags. Tune the split.</h2>
         <p>Explore the penny-stock feed, load two legs, and preview the pair before anything touches a wallet.</p>
@@ -668,10 +673,10 @@ export default function App() {
           </div>
           <button className="load-target" onClick={() => addToPair(activeStock)}><span>Add to bag {activeLeg === 0 ? 'A' : 'B'}</span><strong>+</strong></button>
         </aside>
-      </section>
+      </section></>}
 
       <footer className="footer" id="vault">
-        <div><span className="brand__sigil brand__sigil--small"><i /><i /><i /></span><p>Penny Paired is a UI concept. Market data is a static Yahoo Finance screener snapshot and may be delayed.</p></div>
+        <div><span className="brand__sigil brand__sigil--small"><i /><i /><i /></span><p>PennyPons is a UI concept. Market data is a static Yahoo Finance screener snapshot and may be delayed.</p></div>
         <span>DESIGNED FOR RH CHAIN • SIMULATION ONLY • NOT FINANCIAL ADVICE</span>
       </footer>
 

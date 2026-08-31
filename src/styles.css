@@ -411,6 +411,11 @@ body { font-size: 17px; }
 .stock-row { min-height: 84px; grid-template-columns: 50px minmax(0, 1fr) auto 30px; gap: 12px; padding: 11px 15px; }
 .stock-art { position: relative; display: block; flex: 0 0 auto; overflow: hidden; border: 1px solid rgba(255,255,255,.1); background: #0b0e0a; box-shadow: 0 7px 20px rgba(0,0,0,.25); }
 .stock-art img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.stock-art.is-company-logo { padding: 6px; border-color: rgba(255,255,255,.16); background: #f4f5f1; }
+.stock-art.is-company-logo img { object-fit: contain; }
+.stock-art--mini.is-company-logo { padding: 4px; }
+.stock-art--badge.is-company-logo { padding: 2px; }
+.stock-art--clgn.is-company-logo img, .stock-art--wbuy.is-company-logo img { width: 560%; max-width: none; object-fit: cover; object-position: left center; }
 .stock-art--row { width: 48px; height: 48px; border-radius: 15px; }
 .stock-art--node { width: 43px; height: 43px; margin-top: 15px; border-radius: 13px; }
 .stock-art--signal { width: 62px; height: 62px; border-radius: 18px; }
@@ -531,6 +536,7 @@ body { font-size: 17px; }
 .hero-launcher__create strong { font-size: 14px; }
 .hero-launcher__create em { color: rgba(255,255,255,.4); font-size: 11px; font-style: normal; }
 .hero-launcher__create:hover { border-color: rgba(215,255,83,.45); background: rgba(215,255,83,.09); transform: translateY(-1px); }
+.hero h1 span { color: var(--lime); }
 
 .launch-market { width: min(calc(100% - clamp(28px, 3vw, 56px)), 1810px); margin: 18px auto 0; display: grid; gap: 18px; }
 .top-pairs-section, .trending-launches-section { padding: 28px; border: 1px solid rgba(255,255,255,.075); border-radius: 28px; background: #111211; box-shadow: inset 0 1px rgba(255,255,255,.02); }
