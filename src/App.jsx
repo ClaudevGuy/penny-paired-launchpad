@@ -84,6 +84,42 @@ const Icon = ({ name, size = 18 }) => {
   return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>
 }
 
+const STOCK_ART_PALETTES = [
+  ['#d7ff53', '#274211', '#9bdc34'],
+  ['#86f7d2', '#123c35', '#c8ff35'],
+  ['#ffad66', '#4a2515', '#ffd45f'],
+  ['#ae91ff', '#251c4a', '#d7ff53'],
+  ['#ff7e9d', '#4b1930', '#ffa85c'],
+  ['#65c7ff', '#123348', '#d7ff53'],
+]
+
+function StockArt({ stock, size = 'row' }) {
+  const stockIndex = Math.max(0, STOCKS.findIndex((item) => item.symbol === stock.symbol))
+  const [primary, deep, accent] = STOCK_ART_PALETTES[stockIndex % STOCK_ART_PALETTES.length]
+  const initials = stock.symbol.slice(0, 2)
+  const diagonal = 18 + (stockIndex % 5) * 7
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+      <defs>
+        <radialGradient id="g" cx="24%" cy="18%" r="90%">
+          <stop offset="0" stop-color="${primary}" stop-opacity=".92"/>
+          <stop offset=".48" stop-color="${deep}"/>
+          <stop offset="1" stop-color="#090c09"/>
+        </radialGradient>
+        <filter id="glow"><feGaussianBlur stdDeviation="3"/></filter>
+      </defs>
+      <rect width="96" height="96" rx="24" fill="url(#g)"/>
+      <circle cx="72" cy="22" r="19" fill="${accent}" opacity=".18" filter="url(#glow)"/>
+      <path d="M-8 ${72 - diagonal} L104 ${20 + diagonal} M-5 ${88 - diagonal} L101 ${36 + diagonal}" stroke="${accent}" stroke-width="2" opacity=".42"/>
+      <path d="M16 69 C31 48 44 74 80 29" fill="none" stroke="${primary}" stroke-width="4" stroke-linecap="round" opacity=".85"/>
+      <circle cx="79" cy="28" r="4" fill="${accent}"/>
+      <text x="14" y="32" fill="#f4f7ed" font-family="Arial Black,Arial" font-size="19" font-weight="800" letter-spacing="-1">${initials}</text>
+      <rect x="11" y="76" width="26" height="3" rx="1.5" fill="${accent}"/>
+    </svg>`
+  const src = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`
+  return <span className={`stock-art stock-art--${size}`}><img src={src} alt={`${stock.name} market artwork`} /></span>
+}
+
 function Sparkline({ values, id, large = false }) {
   const width = large ? 280 : 96
   const height = large ? 88 : 32
@@ -114,7 +150,7 @@ function Sparkline({ values, id, large = false }) {
 function StockRow({ stock, selected, paired, onSelect, onPair }) {
   return (
     <article className={`stock-row ${selected ? 'is-selected' : ''} ${paired ? 'is-paired' : ''}`} onClick={onSelect}>
-      <div className="stock-row__rank"><span>{stock.symbol.slice(0, 1)}</span></div>
+      <StockArt stock={stock} />
       <div className="stock-row__identity">
         <div><strong>{stock.symbol}</strong><span>{stock.name}</span></div>
         <Sparkline values={stock.spark} id={stock.symbol} />
@@ -134,6 +170,7 @@ function PairNode({ stock, leg, weight, active, onClick }) {
   return (
     <button className={`pair-node pair-node--${leg} ${active ? 'is-active' : ''}`} onClick={onClick}>
       <span className="pair-node__leg">{leg === 'a' ? 'THRUST' : 'VECTOR'} / LEG {leg.toUpperCase()}</span>
+      <StockArt stock={stock} size="node" />
       <span className="pair-node__symbol">{stock.symbol}</span>
       <span className="pair-node__price">${stock.price < .01 ? stock.price.toFixed(3) : stock.price.toFixed(2)}</span>
       <span className="pair-node__change">+{stock.change.toFixed(2)}%</span>
@@ -162,7 +199,7 @@ function ReviewDrawer({ open, onClose, pair, allocation, mode, budget, onLaunch,
             const dollars = index === 0 ? legAValue : legBValue
             const shares = dollars / stock.price
             return <div className="review-leg" key={stock.symbol}>
-              <div className="review-leg__mark">{String.fromCharCode(65 + index)}</div>
+              <StockArt stock={stock} size="review" />
               <div><strong>{stock.symbol}</strong><span>{shares > 10000 ? `${(shares / 1000).toFixed(1)}K` : shares.toFixed(1)} units</span></div>
               <div><strong>${dollars.toFixed(2)}</strong><span>{index === 0 ? allocation : 100 - allocation}% weight</span></div>
             </div>
@@ -384,7 +421,7 @@ export default function App() {
         </section>
 
         <aside className="signal-panel" id="signals">
-          <div className="panel-heading panel-heading--compact"><div><span className="eyebrow">03 / SIGNAL LENS</span><h2>{activeStock.symbol}</h2></div><span className="live-badge">LIVE</span></div>
+          <div className="panel-heading panel-heading--compact"><div className="signal-panel__identity"><StockArt stock={activeStock} size="signal" /><div><span className="eyebrow">03 / SIGNAL LENS</span><h2>{activeStock.symbol}</h2></div></div><span className="live-badge">LIVE</span></div>
           <div className="signal-price"><div><strong>${activeStock.price < .01 ? activeStock.price.toFixed(3) : activeStock.price.toFixed(2)}</strong><span>+{activeStock.change.toFixed(2)}%</span></div><small>{activeStock.name}</small></div>
           <div className="signal-chart">
             <div className="chart-grid" />
